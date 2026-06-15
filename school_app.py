@@ -188,7 +188,8 @@ with st.sidebar:
     # Show data file status
     data_file = "school_data_log.csv"
     if os.path.exists(data_file):
-        st.success(f"✅ {os.path.getsize(data_file) // 1024} KB of data saved")
+        file_size = os.path.getsize(data_file) // 1024
+        st.success(f"✅ {file_size} KB of data saved")
 
 # ===== DATA =====
 school_data = {
@@ -427,11 +428,22 @@ elif st.session_state.page == "Community":
         st.balloons()
         st.success("Thanks for helping! 🌍")
 
-# ===== DATA ENTRY PAGE WITH CSV SAVE =====
+# ===== DATA ENTRY PAGE WITH CLEAR DATA BUTTON =====
 elif st.session_state.page == "Data Entry":
     st.markdown('<div class="section-header">📥 Enter School Data</div>', unsafe_allow_html=True)
     
     data_file = "school_data_log.csv"
+    
+    # Clear data button row
+    col_clear1, col_clear2 = st.columns([4, 1])
+    with col_clear2:
+        if st.button("🗑️ Clear All Data", type="secondary", use_container_width=True):
+            if os.path.exists(data_file):
+                os.remove(data_file)
+                st.success("✅ All data cleared successfully!")
+                st.rerun()
+            else:
+                st.warning("No data file found to clear.")
     
     with st.form("data_form"):
         st.markdown("### 🚗 Transportation")
@@ -472,7 +484,7 @@ elif st.session_state.page == "Data Entry":
             else:
                 new_data.to_csv(data_file, index=False)
             
-            st.success("✅ Data saved! View history below.")
+            st.success("✅ Data saved!")
             st.balloons()
     
     # Show saved data history
@@ -514,6 +526,11 @@ elif st.session_state.page == "Data Entry":
             st.markdown("#### Walk to School Over Time")
             fig = px.line(history, x='date', y='walk', title='Students Walking to School')
             st.plotly_chart(fig, use_container_width=True)
+            
+            # Food waste trend chart
+            st.markdown("#### Food Waste Over Time")
+            fig2 = px.line(history, x='date', y='food_waste_lbs', title='Pounds of Food Waste per Day')
+            st.plotly_chart(fig2, use_container_width=True)
     else:
         st.info("No data yet. Submit the form above to start tracking your school's environmental impact!")
 
