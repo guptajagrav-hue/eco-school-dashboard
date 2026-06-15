@@ -161,30 +161,26 @@ school_data = {
 }
 
 # Calculate environmental profile scores (0-100)
-# These are normalized scores for the hexagon chart
 environmental_profile = {
     "🌳 Tree Canopy": min(100, (school_data["trees"] / school_data["goal_trees"]) * 100),
     "🚶 Active Transport": min(100, (school_data["walk_bike"] / school_data["goal_walk_bike"]) * 100),
     "♻️ Waste Diversion": min(100, (school_data["recycle"] / school_data["goal_recycle"]) * 100),
-    "💡 Energy Efficiency": min(100, 100 - (school_data["lights_on"] * 5)),
-    "📄 Paper Reduction": min(100, 100 - ((school_data["paper_reams"] - 8) / 8 * 100) if school_data["paper_reams"] > 8 else 100),
-    "💧 Water Conservation": min(100, (school_data["bottles"] / 500) * 100 if school_data["bottles"] < 500 else 100),
+    "💡 Energy Efficiency": min(100, max(0, 100 - (school_data["lights_on"] * 8))),
+    "📄 Paper Reduction": min(100, max(0, 100 - ((school_data["paper_reams"] - 8) / 8 * 100))),
+    "💧 Water Conservation": min(100, (school_data["bottles"] / 500) * 100),
 }
 
-# ===== FUNCTION TO CREATE HEXAGONAL RADAR CHART =====
+# ===== FUNCTION TO CREATE HEXAGONAL RADAR CHART (FIXED) =====
 def create_hexagon_chart(scores, title="Environmental Profile"):
     """Create a hexagonal radar/spider chart"""
     
     categories = list(scores.keys())
     values = list(scores.values())
     
-    # Close the polygon by repeating the first value
-    categories_closed = categories + [categories[0]]
-    values_closed = values + [values[0]]
-    
     # Create radar chart
     fig = go.Figure()
     
+    # Add your school's data
     fig.add_trace(go.Scatterpolar(
         r=values,
         theta=categories,
@@ -207,6 +203,7 @@ def create_hexagon_chart(scores, title="Environmental Profile"):
         fill='none'
     ))
     
+    # Update layout
     fig.update_layout(
         polar=dict(
             radialaxis=dict(
@@ -226,13 +223,13 @@ def create_hexagon_chart(scores, title="Environmental Profile"):
         ),
         title=dict(
             text=title,
-            font=dict(size=18, weight='bold', color='#2d3748'),
+            font=dict(size=16, weight='bold', color='#2d3748'),
             x=0.5
         ),
         showlegend=True,
         legend=dict(
-            x=0.9,
-            y=1.1,
+            x=0.5,
+            y=-0.1,
             orientation='h',
             bgcolor='rgba(255,255,255,0.8)'
         ),
@@ -241,30 +238,13 @@ def create_hexagon_chart(scores, title="Environmental Profile"):
         margin=dict(l=80, r=80, t=80, b=80)
     )
     
-    # Add annotation for overall score
-    avg_score = sum(values) / len(values)
-    fig.add_annotation(
-        x=0.5,
-        y=-0.15,
-        xref="paper",
-        yref="paper",
-        text=f"Overall Environmental Score: {avg_score:.0f}/100",
-        showarrow=False,
-        font=dict(size=14, weight='bold', color='#2e8b57'),
-        bgcolor='rgba(255,255,255,0.9)',
-        bordercolor='#2e8b57',
-        borderwidth=1,
-        borderpad=8,
-        borderradius=8
-    )
-    
     return fig
 
 # ===== DASHBOARD =====
 if view == "📊 Dashboard":
     st.markdown(f'<div class="section-header">📊 {school_name} Dashboard</div>', unsafe_allow_html=True)
     
-    # Row 1: Environmental Profile Hexagon Chart (NEW!)
+    # Row 1: Environmental Profile Hexagon Chart
     st.markdown('<div class="hexagon-container">', unsafe_allow_html=True)
     st.markdown('<h3 style="text-align: center; margin-bottom: 1rem;">🌿 Environmental Profile</h3>', unsafe_allow_html=True)
     
@@ -272,8 +252,17 @@ if view == "📊 Dashboard":
     hex_fig = create_hexagon_chart(environmental_profile, f"{school_name} - 6 Pillars of Sustainability")
     st.plotly_chart(hex_fig, use_container_width=True)
     
-    # Add explanation of the chart
-    st.caption("📊 This hexagonal chart shows your school's performance across 6 key environmental categories. The green area is your school; the gray dashed line is the 100% goal. The closer you are to the outer edge, the better!")
+    # Calculate and display overall score
+    avg_score = sum(environmental_profile.values()) / len(environmental_profile)
+    st.markdown(f"""
+    <div style="text-align: center; margin-top: 0.5rem;">
+        <span style="background: #2e8b57; color: white; padding: 0.5rem 1.5rem; border-radius: 30px; font-weight: bold;">
+            🌟 Overall Environmental Score: {avg_score:.0f}/100
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.caption("📊 This hexagonal chart shows your school's performance across 6 key environmental categories. The green area is your school; the gray dashed line is the 100% goal.")
     st.markdown('</div>', unsafe_allow_html=True)
     
     st.markdown("---")
@@ -371,7 +360,7 @@ if view == "📊 Dashboard":
             </div>
             ''', unsafe_allow_html=True)
     
-    # Detailed breakdown of hexagon scores
+    # Detailed breakdown
     with st.expander("📊 View Detailed Environmental Profile Breakdown"):
         st.markdown("### Category Scores (0-100)")
         for category, score in environmental_profile.items():
@@ -430,11 +419,10 @@ elif view == "🏆 Leaderboard":
 elif view == "📋 Action Plan":
     st.markdown('<div class="section-header">📋 Your School\'s Custom Action Plan</div>', unsafe_allow_html=True)
     
-    # Show the hexagon chart with lowest scores highlighted
-    st.markdown("### Based on Your Environmental Profile:")
+    # Show lowest scoring categories
     low_scores = [(cat, score) for cat, score in environmental_profile.items() if score < 60]
     if low_scores:
-        st.warning(f"⚠️ Priority areas: {', '.join([cat for cat, _ in low_scores])}")
+        st.warning(f"⚠️ Priority areas based on your Environmental Profile: {', '.join([cat for cat, _ in low_scores])}")
     
     st.markdown(f'''
     <div class="action-item action-priority-1">
@@ -449,7 +437,7 @@ elif view == "📋 Action Plan":
     <div class="action-item action-priority-2">
         <strong>🟠 PRIORITY 2: Stop Wasting Edible Food</strong><br>
         <strong>Problem:</strong> {school_data["food_waste"]} lbs of unopened food thrown away daily.<br>
-        <strong>Solution:</strong> Start a "Share Table" where students place unwanted unopened food.<br>
+        <strong>Solution:</strong> Start a "Share Table".<br>
         <strong>Impact:</strong> Divert {school_data["food_waste"] * 180:,} lbs/year to hungry people.
     </div>
     ''', unsafe_allow_html=True)
@@ -458,7 +446,7 @@ elif view == "📋 Action Plan":
     <div class="action-item action-priority-3">
         <strong>🟢 PRIORITY 3: Turn Off Lights</strong><br>
         <strong>Problem:</strong> {school_data["lights_on"]} classrooms leave lights on when empty.<br>
-        <strong>Solution:</strong> Assign daily "Energy Monitor" student job in each classroom.<br>
+        <strong>Solution:</strong> Assign daily "Energy Monitor" student job.<br>
         <strong>Impact:</strong> Save $50/month on electricity bills.
     </div>
     ''', unsafe_allow_html=True)
