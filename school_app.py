@@ -34,8 +34,6 @@ def get_css(dark_mode):
         .section-header { color: #00b894; border-left-color: #00b894; }
         .leaderboard-item { background: #0f3460; color: white; }
         .leaderboard-item b, .leaderboard-item div { color: white !important; }
-        .action-item { color: #1a202c; }
-        .action-priority-1, .action-priority-2, .action-priority-3 { color: #1a202c; }
         .footer { color: #718096; border-top-color: #2d3436; }
         .profile-box { background: #0f3460; }
         .profile-box h3 { color: white; }
@@ -62,6 +60,10 @@ def get_css(dark_mode):
         .stTextInput > div > div > input:focus {
             border-color: #55efc4 !important;
             box-shadow: 0 0 0 2px rgba(0, 184, 148, 0.2) !important;
+        }
+        /* Toggle button dark mode */
+        .st-emotion-cache-1y4p8pa {
+            background-color: #00b894 !important;
         }
         </style>
         """
@@ -128,7 +130,7 @@ def set_page(page_name):
     st.rerun()
 
 # ===== NAVIGATION BUTTONS =====
-st.markdown('<div class="nav-container" style="display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap; margin: 1rem 0; padding: 0.5rem; background: white; border-radius: 50px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">', unsafe_allow_html=True)
+st.markdown('<div style="display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap; margin: 1rem 0; padding: 0.5rem; background: white; border-radius: 50px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">', unsafe_allow_html=True)
 
 cols = st.columns(6)
 with cols[0]:
@@ -155,7 +157,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 # ===== SCHOOL PROFILE HEADER =====
 school_name = "Washington Middle School"
 st.markdown(f"""
-<div class="profile-header" style="background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); border-radius: 24px; padding: 1.5rem; color: white; margin-bottom: 1rem; text-align: center;">
+<div style="background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); border-radius: 24px; padding: 1.5rem; color: white; margin-bottom: 1rem; text-align: center;">
     <h2 style="margin: 0;">🌱 {school_name}</h2>
     <p style="margin: 0; opacity: 0.9;">Environmental Profile · AI-Powered Insights</p>
 </div>
@@ -437,8 +439,9 @@ elif st.session_state.page == "Leaderboard":
     for i, item in enumerate(leaderboard):
         medal = "🥇" if i == 0 else "🥈" if i == 1 else "🥉" if i == 2 else f"{i+1}."
         lights_status = "✅ Lights Off" if item['lights'] else "❌ Lights Left On"
+        bg_color = "#1a1a2e" if st.session_state.dark_mode else "#f8faf8"
         st.markdown(f'''
-        <div class="leaderboard-item" style="padding: 0.8rem 1rem; margin: 0.5rem 0; border-radius: 12px; background: {"#1a1a2e" if st.session_state.dark_mode else "#f8faf8"}; display: flex; justify-content: space-between; align-items: center;">
+        <div style="padding: 0.8rem 1rem; margin: 0.5rem 0; border-radius: 12px; background: {bg_color}; display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; justify-content: space-between; width: 100%;">
                 <span><b>{medal}</b></span>
                 <span><b>{item['room']}</b></span>
@@ -452,16 +455,24 @@ elif st.session_state.page == "Leaderboard":
 elif st.session_state.page == "Action Plan":
     st.markdown('<div class="section-header">📋 Custom Action Plan</div>', unsafe_allow_html=True)
     
+    # Priority backgrounds based on dark mode
+    if st.session_state.dark_mode:
+        bg1, bg2, bg3 = "#2d1a1a", "#2d2a1a", "#1a2d1a"
+        text_color = "white"
+    else:
+        bg1, bg2, bg3 = "#fef2f2", "#fffbeb", "#ecfdf5"
+        text_color = "#1a202c"
+    
     st.markdown(f'''
-    <div class="action-item action-priority-1" style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #dc2626; background: {"#2d1a1a" if st.session_state.dark_mode else "#fef2f2"}; color: {"white" if st.session_state.dark_mode else "#1a202c"};">
+    <div style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #dc2626; background: {bg1}; color: {text_color};">
         <strong>🔴 PRIORITY 1: Reduce Solo Car Drop-offs</strong><br>
         🚗 {school_data["car_alone"]} solo cars daily → Save {school_data["co2_save"]} lbs CO2/week
     </div>
-    <div class="action-item action-priority-2" style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #f59e0b; background: {"#2d2a1a" if st.session_state.dark_mode else "#fffbeb"}; color: {"white" if st.session_state.dark_mode else "#1a202c"};">
+    <div style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #f59e0b; background: {bg2}; color: {text_color};">
         <strong>🟠 PRIORITY 2: Stop Wasting Food</strong><br>
         🍎 {school_data["food_waste"]} lbs wasted daily → Divert {school_data["food_waste"] * 180:,} lbs/year
     </div>
-    <div class="action-item action-priority-3" style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #10b981; background: {"#1a2d1a" if st.session_state.dark_mode else "#ecfdf5"}; color: {"white" if st.session_state.dark_mode else "#1a202c"};">
+    <div style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #10b981; background: {bg3}; color: {text_color};">
         <strong>🟢 PRIORITY 3: Turn Off Lights</strong><br>
         💡 {school_data["lights_on"]} classrooms leave lights on → Save $50/month
     </div>
@@ -686,7 +697,7 @@ elif st.session_state.page == "Data Entry":
 
 # ===== FOOTER =====
 st.markdown("""
-<div class="footer" style="text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #e2e8f0; margin-top: 2rem;">
+<div style="text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #e2e8f0; margin-top: 2rem;">
     <strong>🌱 Eco-School Dashboard</strong> · AI-powered · Built for USAII Hackathon 2026
 </div>
 """, unsafe_allow_html=True)
