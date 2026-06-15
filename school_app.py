@@ -7,27 +7,126 @@ from datetime import datetime
 st.set_page_config(
     page_title="Eco-School Dashboard",
     page_icon="🌱",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
+# ===== CUSTOM CSS FOR COLORFUL CARDS =====
+st.markdown("""
+<style>
+/* Card styling */
+.metric-card {
+    background: white;
+    padding: 1.2rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+}
+.metric-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+.metric-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+.metric-sub {
+    font-size: 0.7rem;
+    margin-top: 0.3rem;
+    opacity: 0.8;
+}
+
+/* Color themes for cards */
+.card-green { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; }
+.card-blue { background: linear-gradient(135deg, #1e6f9f 0%, #3b82f6 100%); color: white; }
+.card-orange { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: white; }
+.card-red { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; }
+.card-purple { background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); color: white; }
+.card-teal { background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); color: white; }
+.card-pink { background: linear-gradient(135deg, #db2777 0%, #f472b6 100%); color: white; }
+.card-indigo { background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); color: white; }
+.card-gray { background: linear-gradient(135deg, #4b5563 0%, #9ca3af 100%); color: white; }
+
+/* Section headers */
+.section-header {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 1.5rem 0 1rem 0;
+    padding-left: 0.8rem;
+    border-left: 4px solid #2e8b57;
+}
+
+/* Leaderboard items */
+.leaderboard-item {
+    padding: 0.8rem 1rem;
+    margin: 0.5rem 0;
+    border-radius: 12px;
+    background: #f8faf8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.leaderboard-rank {
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+.leaderboard-name {
+    font-weight: 600;
+}
+.leaderboard-score {
+    font-weight: 800;
+    color: #2e8b57;
+}
+
+/* Action plan items */
+.action-item {
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 16px;
+    border-left: 4px solid;
+}
+.action-priority-1 { background: #fef2f2; border-left-color: #dc2626; }
+.action-priority-2 { background: #fffbeb; border-left-color: #f59e0b; }
+.action-priority-3 { background: #ecfdf5; border-left-color: #10b981; }
+
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 2rem;
+    color: #718096;
+    font-size: 0.8rem;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 2rem;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ===== HEADER =====
-st.title("🌱 Eco-School Dashboard")
-st.caption("Track your school's environmental impact · AI-powered insights")
+st.markdown('<h1 style="text-align: center; color: #2e8b57;">🌱 Eco-School Dashboard</h1>', unsafe_allow_html=True)
+st.markdown('<p style="text-align: center; color: #4a5568;">Track your school\'s environmental impact · AI-powered insights</p>', unsafe_allow_html=True)
 
 # ===== SIDEBAR =====
 with st.sidebar:
-    st.header("🏫 Your School")
+    st.markdown("### 🏫 Your School")
     school_name = st.text_input("School Name:", value="Washington Middle School")
     
-    st.divider()
+    st.markdown("---")
     
     if st.button("🤖 Why AI?", use_container_width=True):
         st.info("AI analyzes transportation, waste, and energy data to find the highest-impact actions for YOUR school.")
     
-    st.divider()
+    st.markdown("---")
     
-    st.subheader("📍 Navigate")
+    st.markdown("### 📍 Navigate")
     view = st.radio("", [
         "📊 Dashboard", 
         "🏆 Leaderboard", 
@@ -37,7 +136,7 @@ with st.sidebar:
         "📥 Data Entry"
     ], label_visibility="collapsed")
     
-    st.divider()
+    st.markdown("---")
     
     st.link_button("🐦 Share on Twitter", "https://twitter.com/intent/tweet?text=Check%20out%20Eco-School%20Dashboard!%20🌱", use_container_width=True)
 
@@ -66,128 +165,201 @@ school_data = {
 
 # ===== DASHBOARD =====
 if view == "📊 Dashboard":
-    st.header(f"📊 {school_name} Dashboard")
+    st.markdown(f'<div class="section-header">📊 {school_name} Dashboard</div>', unsafe_allow_html=True)
     
-    # Metrics row
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.metric("🌳 Trees on Campus", school_data["trees"], f"Goal: {school_data['goal_trees']}")
-    with c2:
-        st.metric("🚶 Walk/Bike to School", f"{school_data['walk_bike']}%", f"Goal: {school_data['goal_walk_bike']}%")
-    with c3:
-        st.metric("♻️ Waste Diverted", f"{school_data['recycle']}%", f"Goal: {school_data['goal_recycle']}%")
-    with c4:
-        st.metric("💧 Bottles Saved/Week", school_data["bottles"])
-    
-    st.divider()
-    
-    # Charts row
-    col1, col2 = st.columns(2)
+    # Row 1: Main metrics
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.subheader("🚗 Transportation")
-        transport = pd.DataFrame({
-            'Mode': ['Walk', 'Bike', 'Bus', 'Car Alone', 'Carpool'],
-            'Students': [135, 45, 180, 54, 36]
-        })
-        fig = px.pie(transport, values='Students', names='Mode', title='How Students Get to School')
-        st.plotly_chart(fig, use_container_width=True)
-        st.info(f"💡 {school_data['car_alone']} solo cars daily → Save {school_data['co2_save']} lbs CO2/week with carpooling!")
+        st.markdown(f'''
+        <div class="metric-card card-green">
+            <div class="metric-value">{school_data["trees"]}<span style="font-size:1rem;"> / {school_data["goal_trees"]}</span></div>
+            <div class="metric-label">🌳 Trees on Campus</div>
+            <div class="metric-sub">+{school_data["goal_trees"] - school_data["trees"]} needed</div>
+        </div>
+        ''', unsafe_allow_html=True)
     
     with col2:
-        st.subheader("🗑️ Daily Waste")
-        waste = pd.DataFrame({
-            'Type': ['Food Wasted', 'Recycled', 'Composted', 'Trash'],
-            'Pounds': [24, 16, 28, 12]
-        })
-        fig = px.bar(waste, x='Type', y='Pounds', title='Daily Waste (lbs)', color='Type')
-        st.plotly_chart(fig, use_container_width=True)
-        st.info(f"💡 {school_data['food_waste']} lbs food wasted daily = {school_data['food_waste'] * 180:,} lbs/year!")
-    
-    col3, col4 = st.columns(2)
+        st.markdown(f'''
+        <div class="metric-card card-blue">
+            <div class="metric-value">{school_data["walk_bike"]}<span style="font-size:1rem;">%</span></div>
+            <div class="metric-label">🚶 Walk/Bike to School</div>
+            <div class="metric-sub">Goal: {school_data["goal_walk_bike"]}%</div>
+        </div>
+        ''', unsafe_allow_html=True)
     
     with col3:
-        st.subheader("💡 Classroom Energy")
-        energy_data = []
-        for room, data in school_data['classrooms'].items():
-            energy_data.append({"Classroom": room, "Score": data['score']})
-        energy_df = pd.DataFrame(energy_data)
-        fig = px.bar(energy_df, x='Classroom', y='Score', title='Energy Score (0-100)', color='Score', range_y=[0,100])
-        st.plotly_chart(fig, use_container_width=True)
-        st.warning(f"⚠️ {school_data['lights_on']} classrooms leave lights on when empty!")
+        st.markdown(f'''
+        <div class="metric-card card-purple">
+            <div class="metric-value">{school_data["recycle"]}<span style="font-size:1rem;">%</span></div>
+            <div class="metric-label">♻️ Waste Diverted</div>
+            <div class="metric-sub">Goal: {school_data["goal_recycle"]}%</div>
+        </div>
+        ''', unsafe_allow_html=True)
     
     with col4:
-        st.subheader("📄 Paper Usage")
-        trees_used = school_data['paper_reams'] / 16.6
-        st.metric("Reams of Paper per Week", school_data['paper_reams'])
-        st.metric("Trees Used per Year", f"{trees_used:.1f}")
-        st.info("💡 Print two-sided to save 50% of paper!")
+        st.markdown(f'''
+        <div class="metric-card card-teal">
+            <div class="metric-value">{school_data["bottles"]}</div>
+            <div class="metric-label">💧 Bottles Saved/Week</div>
+            <div class="metric-sub">Plastic bottles kept from landfill</div>
+        </div>
+        ''', unsafe_allow_html=True)
+    
+    # Row 2: Problem cards
+    st.markdown('<div class="section-header">⚠️ Areas Needing Attention</div>', unsafe_allow_html=True)
+    
+    col5, col6, col7 = st.columns(3)
+    
+    with col5:
+        st.markdown(f'''
+        <div class="metric-card card-red">
+            <div class="metric-value">{school_data["car_alone"]}</div>
+            <div class="metric-label">🚗 Solo Cars Daily</div>
+            <div class="metric-sub">Save {school_data["co2_save"]} lbs CO2/week with carpooling</div>
+        </div>
+        ''', unsafe_allow_html=True)
+    
+    with col6:
+        st.markdown(f'''
+        <div class="metric-card card-orange">
+            <div class="metric-value">{school_data["food_waste"]}<span style="font-size:1rem;"> lbs</span></div>
+            <div class="metric-label">🍎 Food Wasted Daily</div>
+            <div class="metric-sub">{school_data["food_waste"] * 180:,} lbs/year could feed hungry people</div>
+        </div>
+        ''', unsafe_allow_html=True)
+    
+    with col7:
+        st.markdown(f'''
+        <div class="metric-card card-gray">
+            <div class="metric-value">{school_data["paper_reams"]}<span style="font-size:1rem;"> reams/week</span></div>
+            <div class="metric-label">📄 Paper Usage</div>
+            <div class="metric-sub">{school_data["paper_reams"] / 16.6:.1f} trees used per year</div>
+        </div>
+        ''', unsafe_allow_html=True)
+    
+    # Row 3: Classroom energy
+    st.markdown('<div class="section-header">💡 Classroom Energy Scores</div>', unsafe_allow_html=True)
+    
+    cols = st.columns(5)
+    for idx, (room, data) in enumerate(school_data['classrooms'].items()):
+        score = data['score']
+        if score >= 80:
+            color = "card-green"
+        elif score >= 50:
+            color = "card-teal"
+        else:
+            color = "card-red"
+        
+        with cols[idx]:
+            st.markdown(f'''
+            <div class="metric-card {color}">
+                <div class="metric-value">{score}</div>
+                <div class="metric-label">{room}</div>
+                <div class="metric-sub">{"✅ Lights Off" if data['lights'] else "❌ Lights Left On"}</div>
+            </div>
+            ''', unsafe_allow_html=True)
 
 # ===== LEADERBOARD =====
 elif view == "🏆 Leaderboard":
-    st.header("🏆 Green Classroom Leaderboard")
+    st.markdown('<div class="section-header">🏆 Green Classroom Leaderboard</div>', unsafe_allow_html=True)
     
     leaderboard = []
     for room, data in school_data['classrooms'].items():
-        leaderboard.append({
-            "Classroom": room,
-            "Score": data['score'],
-            "Lights Off": "✅" if data['lights'] else "❌"
-        })
+        leaderboard.append({"room": room, "score": data['score'], "lights": data['lights']})
     
-    leaderboard = sorted(leaderboard, key=lambda x: x['Score'], reverse=True)
+    leaderboard = sorted(leaderboard, key=lambda x: x['score'], reverse=True)
     
-    for i, row in enumerate(leaderboard):
+    for i, item in enumerate(leaderboard):
         if i == 0:
-            st.success(f"🥇 **1st Place: {row['Classroom']} — {row['Score']} points** | Lights: {row['Lights Off']}")
+            medal = "🥇"
+            bg = "#fef3c7"
         elif i == 1:
-            st.info(f"🥈 **2nd Place: {row['Classroom']} — {row['Score']} points** | Lights: {row['Lights Off']}")
+            medal = "🥈"
+            bg = "#f0fdf4"
         elif i == 2:
-            st.info(f"🥉 **3rd Place: {row['Classroom']} — {row['Score']} points** | Lights: {row['Lights Off']}")
+            medal = "🥉"
+            bg = "#e0f2fe"
         else:
-            st.write(f"**{i+1}. {row['Classroom']} — {row['Score']} points** | Lights: {row['Lights Off']}")
+            medal = f"{i+1}."
+            bg = "#f8faf8"
+        
+        lights_status = "✅ Lights Off" if item['lights'] else "❌ Lights Left On"
+        
+        st.markdown(f'''
+        <div class="leaderboard-item" style="background: {bg};">
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+                <div class="leaderboard-rank">{medal}</div>
+                <div class="leaderboard-name">{item['room']}</div>
+                <div class="leaderboard-score">{item['score']} points</div>
+                <div style="font-size: 0.8rem;">{lights_status}</div>
+            </div>
+        </div>
+        ''', unsafe_allow_html=True)
+    
+    st.markdown("---")
+    st.markdown("### 📋 Weekly Challenge Checklist")
+    st.checkbox("☐ Turn off lights when leaving (10 points/day)")
+    st.checkbox("☐ Shut down computers at end of day (10 points/day)")
+    st.checkbox("☐ Sort waste correctly (20 points/day)")
+    st.checkbox("☐ Walk, bike, or carpool to school (15 points/day)")
 
 # ===== ACTION PLAN =====
 elif view == "📋 Action Plan":
-    st.header("📋 Your School's Custom Action Plan")
+    st.markdown('<div class="section-header">📋 Your School\'s Custom Action Plan</div>', unsafe_allow_html=True)
     
-    st.subheader("🔴 PRIORITY 1: Reduce Solo Car Drop-offs")
-    st.write(f"**Problem:** {school_data['car_alone']} cars arrive daily with just one student.")
-    st.write("**Solution:** Launch a 'Walk & Roll Wednesday' program.")
-    st.write(f"**Impact:** Save {school_data['co2_save']} lbs CO2/week.")
+    st.markdown(f'''
+    <div class="action-item action-priority-1">
+        <strong>🔴 PRIORITY 1: Reduce Solo Car Drop-offs</strong><br>
+        <strong>Problem:</strong> {school_data["car_alone"]} cars arrive daily with just one student.<br>
+        <strong>Solution:</strong> Launch a "Walk & Roll Wednesday" program.<br>
+        <strong>Impact:</strong> Save {school_data["co2_save"]} lbs CO2/week.
+    </div>
+    ''', unsafe_allow_html=True)
     
-    st.subheader("🟠 PRIORITY 2: Stop Wasting Edible Food")
-    st.write(f"**Problem:** {school_data['food_waste']} lbs of unopened food thrown away daily.")
-    st.write("**Solution:** Start a 'Share Table' where students place unwanted unopened food.")
-    st.write(f"**Impact:** Divert {school_data['food_waste'] * 180:,} lbs/year to hungry people.")
+    st.markdown(f'''
+    <div class="action-item action-priority-2">
+        <strong>🟠 PRIORITY 2: Stop Wasting Edible Food</strong><br>
+        <strong>Problem:</strong> {school_data["food_waste"]} lbs of unopened food thrown away daily.<br>
+        <strong>Solution:</strong> Start a "Share Table" where students place unwanted unopened food.<br>
+        <strong>Impact:</strong> Divert {school_data["food_waste"] * 180:,} lbs/year to hungry people.
+    </div>
+    ''', unsafe_allow_html=True)
     
-    st.subheader("🟡 PRIORITY 3: Turn Off Lights")
-    st.write(f"**Problem:** {school_data['lights_on']} classrooms leave lights on when empty.")
-    st.write("**Solution:** Assign daily 'Energy Monitor' student job in each classroom.")
-    st.write("**Impact:** Save $50/month on electricity bills.")
+    st.markdown(f'''
+    <div class="action-item action-priority-3">
+        <strong>🟢 PRIORITY 3: Turn Off Lights</strong><br>
+        <strong>Problem:</strong> {school_data["lights_on"]} classrooms leave lights on when empty.<br>
+        <strong>Solution:</strong> Assign daily "Energy Monitor" student job in each classroom.<br>
+        <strong>Impact:</strong> Save $50/month on electricity bills.
+    </div>
+    ''', unsafe_allow_html=True)
 
 # ===== SIMULATOR =====
 elif view == "🌡️ Simulator":
-    st.header("🌡️ What If Simulator")
-    st.caption("See how different actions would change your school's environmental impact")
+    st.markdown('<div class="section-header">🌡️ What If Simulator</div>', unsafe_allow_html=True)
     
-    c1, c2 = st.columns(2)
+    col1, col2 = st.columns(2)
     
-    with c1:
-        trees = st.slider("🌳 Trees to plant:", 0, 100, 20)
+    with col1:
+        st.markdown('<div class="metric-card card-green" style="text-align: center; padding: 1.5rem;">', unsafe_allow_html=True)
+        trees = st.slider("🌳 Trees to plant:", 0, 100, 20, key="trees_sim")
         temp_reduction = trees * 0.3
-        st.metric("Temperature Reduction", f"-{temp_reduction:.1f}°F")
-        st.caption("Cooler playground on hot days")
+        st.markdown(f'<div class="metric-value">-{temp_reduction:.1f}°F</div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-label">Temperature Reduction</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    with c2:
-        walk_pct = st.slider("🚶 Increase walk/bike by:", 0, 100, 20)
+    with col2:
+        st.markdown('<div class="metric-card card-blue" style="text-align: center; padding: 1.5rem;">', unsafe_allow_html=True)
+        walk_pct = st.slider("🚶 Increase walk/bike by:", 0, 100, 20, key="walk_sim")
         cars_removed = int(54 * walk_pct / 100)
-        st.metric("Fewer Solo Cars Daily", f"-{cars_removed}")
-        st.caption(f"{cars_removed * 5} lbs CO2 saved daily")
+        st.markdown(f'<div class="metric-value">-{cars_removed}</div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-label">Fewer Solo Cars Daily</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # ===== COMMUNITY =====
 elif view == "🌱 Community":
-    st.header("🌱 Community Action Tracker")
+    st.markdown('<div class="section-header">🌱 Community Action Tracker</div>', unsafe_allow_html=True)
     
     actions = [
         "🌳 Planted a tree on campus",
@@ -200,35 +372,43 @@ elif view == "🌱 Community":
     selected = st.selectbox("What did your school do this week?", actions)
     
     if st.button("✅ Log This Action", type="primary"):
-        st.success("Thanks for helping your school go green! 🌍")
         st.balloons()
+        st.success("Thanks for helping your school go green! 🌍")
     
-    st.divider()
-    st.caption("Every action counts. Small changes add up to big impact!")
+    st.markdown("---")
+    st.markdown('<div class="metric-card card-gray" style="text-align: center;">', unsafe_allow_html=True)
+    st.markdown('<div class="metric-label">💡 Every action counts</div>', unsafe_allow_html=True)
+    st.markdown('<div class="metric-sub">Small changes add up to big impact!</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ===== DATA ENTRY =====
 elif view == "📥 Data Entry":
-    st.header("📥 Enter Your School's Data")
-    st.caption("Fill out this form daily or weekly to track progress")
+    st.markdown('<div class="section-header">📥 Enter Your School\'s Data</div>', unsafe_allow_html=True)
     
     with st.form("data_entry"):
-        st.subheader("🚗 Transportation (Today)")
-        walk = st.number_input("Students who walked:", min_value=0, value=135)
-        bike = st.number_input("Students who biked:", min_value=0, value=45)
-        car_alone = st.number_input("Students in car alone:", min_value=0, value=54)
+        st.markdown("### 🚗 Transportation")
+        col_a, col_b = st.columns(2)
+        with col_a:
+            walk = st.number_input("Students who walked:", min_value=0, value=135)
+            bike = st.number_input("Students who biked:", min_value=0, value=45)
+        with col_b:
+            car_alone = st.number_input("Students in car alone:", min_value=0, value=54)
         
-        st.subheader("🗑️ Cafeteria Waste (Today)")
+        st.markdown("### 🗑️ Cafeteria Waste")
         food_waste = st.number_input("Pounds of uneaten food:", min_value=0.0, value=24.0)
         
-        st.subheader("💡 Energy (Today)")
+        st.markdown("### 💡 Energy")
         lights_left = st.number_input("Classrooms that left lights on:", min_value=0, value=5)
         
         submitted = st.form_submit_button("💾 Save Data", type="primary")
         
         if submitted:
-            st.success("✅ Data saved! Track progress week over week.")
             st.balloons()
+            st.success("✅ Data saved! Track progress week over week.")
 
 # ===== FOOTER =====
-st.divider()
-st.caption("🌱 Eco-School Dashboard · AI-powered · Built for USAII Hackathon 2026")
+st.markdown("""
+<div class="footer">
+    <strong>🌱 Eco-School Dashboard</strong> · AI-powered · Built for USAII Hackathon 2026
+</div>
+""", unsafe_allow_html=True)
