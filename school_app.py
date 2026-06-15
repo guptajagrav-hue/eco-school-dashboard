@@ -192,6 +192,20 @@ with st.sidebar:
         file_size = os.path.getsize(data_file) // 1024
         st.success(f"✅ {file_size} KB of data saved")
 
+# ===== CREATE DEMO DATA IF NO DATA EXISTS =====
+data_file = "school_data_log.csv"
+if not os.path.exists(data_file):
+    demo_data = pd.DataFrame([
+        {"date": "2026-06-10", "walk": 120, "bike": 40, "car_alone": 60, "total_students": 220, "food_waste_lbs": 28, "lights_left_on": 6},
+        {"date": "2026-06-11", "walk": 125, "bike": 42, "car_alone": 58, "total_students": 225, "food_waste_lbs": 26, "lights_left_on": 5},
+        {"date": "2026-06-12", "walk": 130, "bike": 44, "car_alone": 55, "total_students": 229, "food_waste_lbs": 25, "lights_left_on": 5},
+        {"date": "2026-06-13", "walk": 135, "bike": 45, "car_alone": 54, "total_students": 234, "food_waste_lbs": 24, "lights_left_on": 4},
+        {"date": "2026-06-14", "walk": 140, "bike": 46, "car_alone": 52, "total_students": 238, "food_waste_lbs": 22, "lights_left_on": 4},
+        {"date": "2026-06-15", "walk": 145, "bike": 47, "car_alone": 50, "total_students": 242, "food_waste_lbs": 21, "lights_left_on": 3},
+    ])
+    demo_data.to_csv(data_file, index=False)
+    st.toast("📊 Demo data loaded! AI features are now active.", icon="✅")
+
 # ===== DATA =====
 school_data = {
     "trees": 31,
@@ -373,13 +387,13 @@ if st.session_state.page == "Dashboard":
         </div>
         ''', unsafe_allow_html=True)
     
-    # ===== AI FEATURE 2: SMART ANOMALY DETECTION =====
+    # ===== AI FEATURE: SMART ANOMALY DETECTION =====
     st.markdown('<div class="section-header">🤖 AI Insights</div>', unsafe_allow_html=True)
     
     if os.path.exists(data_file):
         history = pd.read_csv(data_file)
         
-        if len(history) > 5:
+        if len(history) > 3:
             # Walk anomaly detection
             walk_mean = history['walk'].mean()
             walk_std = history['walk'].std()
@@ -402,35 +416,37 @@ if st.session_state.page == "Dashboard":
             elif last_waste < waste_mean - waste_std:
                 st.success("🎉 AI Insight: Food waste is down! Great job reducing waste.")
         else:
-            st.info("📊 AI needs at least 5 days of data to detect patterns. Keep logging!")
+            st.info("📊 AI needs at least 4 days of data to detect patterns. Keep logging!")
     else:
         st.info("📊 Start logging daily data in the Data Entry page to enable AI insights!")
     
-    # ===== AI FEATURE 4: PEER SCHOOL COMPARISON =====
-    if os.path.exists(data_file) and len(pd.read_csv(data_file)) > 5:
+    # ===== AI FEATURE: PEER SCHOOL COMPARISON =====
+    if os.path.exists(data_file):
         history = pd.read_csv(data_file)
-        st.markdown('<div class="section-header">🏫 How You Compare to National Average</div>', unsafe_allow_html=True)
-        
-        # Calculate your school's performance
-        total_walk = history['walk'].sum()
-        total_car = history['car_alone'].sum()
-        your_walk_rate = total_walk / (total_walk + total_car) * 100
-        
-        # Simulated national average
-        national_avg = 45
-        
-        col_comp1, col_comp2 = st.columns(2)
-        with col_comp1:
-            if your_walk_rate > national_avg:
-                st.success(f"✅ Your school ({your_walk_rate:.0f}% walk) beats the national average of {national_avg}%!")
-            else:
-                st.warning(f"⚠️ Your school ({your_walk_rate:.0f}% walk) is below the national average of {national_avg}%.")
-        
-        with col_comp2:
-            gap = national_avg - your_walk_rate
-            if gap > 0:
-                more_students_needed = int(gap/100 * history['walk'].mean())
-                st.info(f"🤖 AI Suggestion: Need {more_students_needed} more students walking daily to reach average.")
+        if len(history) > 3:
+            st.markdown('<div class="section-header">🏫 How You Compare to National Average</div>', unsafe_allow_html=True)
+            
+            # Calculate your school's performance
+            total_walk = history['walk'].sum()
+            total_car = history['car_alone'].sum()
+            your_walk_rate = total_walk / (total_walk + total_car) * 100 if (total_walk + total_car) > 0 else 0
+            
+            # Simulated national average
+            national_avg = 45
+            
+            col_comp1, col_comp2 = st.columns(2)
+            with col_comp1:
+                if your_walk_rate > national_avg:
+                    st.success(f"✅ Your school ({your_walk_rate:.0f}% walk) beats the national average of {national_avg}%!")
+                else:
+                    st.warning(f"⚠️ Your school ({your_walk_rate:.0f}% walk) is below the national average of {national_avg}%.")
+            
+            with col_comp2:
+                gap = national_avg - your_walk_rate
+                if gap > 0:
+                    avg_walk = history['walk'].mean()
+                    more_students_needed = int(gap/100 * avg_walk) if avg_walk > 0 else 10
+                    st.info(f"🤖 AI Suggestion: Need {more_students_needed} more students walking daily to reach average.")
 
 # ===== LEADERBOARD PAGE =====
 elif st.session_state.page == "Leaderboard":
@@ -465,27 +481,32 @@ elif st.session_state.page == "Action Plan":
     </div>
     ''', unsafe_allow_html=True)
     
-    # ===== AI FEATURE 3: PERSONALIZED RECOMMENDATIONS =====
+    # ===== AI FEATURE: PERSONALIZED RECOMMENDATIONS =====
     if os.path.exists(data_file):
         history = pd.read_csv(data_file)
         if len(history) > 3:
             st.markdown("### 🤖 AI-Powered Custom Recommendations")
             
             # Analyze which area needs most improvement
-            walk_rate = history['walk'].mean() / (history['walk'].mean() + history['car_alone'].mean()) * 100
+            walk_rate = history['walk'].mean() / (history['walk'].mean() + history['car_alone'].mean()) * 100 if (history['walk'].mean() + history['car_alone'].mean()) > 0 else 50
             waste_avg = history['food_waste_lbs'].mean()
             lights_avg = history['lights_left_on'].mean()
             
+            recommendations_made = False
+            
             if walk_rate < 40:
-                st.info(f"🚶 **Low walking rate** — Only {walk_rate:.0f}% walk vs car. Start a 'walking school bus' program!")
+                st.info(f"🚶 **Low walking rate** — Only {walk_rate:.0f}% walk vs car. Start a 'walking school bus' program where neighbors walk together!")
+                recommendations_made = True
             if waste_avg > 25:
-                st.info(f"🍎 **High food waste** — Average {waste_avg:.0f} lbs/day. Start a 'Share Table' program!")
+                st.info(f"🍎 **High food waste** — Average {waste_avg:.0f} lbs/day. Start a 'Share Table' for unopened food!")
+                recommendations_made = True
             if lights_avg > 3:
-                st.info(f"💡 **Lights left on** — Average {lights_avg:.0f} classrooms. Assign daily energy monitors!")
-            if walk_rate >= 40 and waste_avg <= 25 and lights_avg <= 3:
-                st.success("🎉 Your school is doing great across all metrics! Keep it up!")
+                st.info(f"💡 **Lights left on** — Average {lights_avg:.0f} classrooms. Assign daily 'Energy Monitor' student jobs!")
+                recommendations_made = True
+            if not recommendations_made:
+                st.success("🎉 Your school is doing great across all metrics! Keep up the amazing work!")
     
-    # ===== AI FEATURE 5: SMART GOAL SETTING =====
+    # ===== AI FEATURE: SMART GOAL SETTING =====
     if os.path.exists(data_file):
         history = pd.read_csv(data_file)
         if len(history) > 3:
@@ -538,7 +559,7 @@ elif st.session_state.page == "Simulator":
         walk_pct = st.slider("🚶 Increase walk/bike by:", 0, 100, 20)
         st.metric("Fewer Solo Cars Daily", f"-{int(54 * walk_pct / 100)}")
     
-    # ===== AI FEATURE 1: TREND PREDICTION =====
+    # ===== AI FEATURE: TREND PREDICTION =====
     if os.path.exists(data_file):
         history = pd.read_csv(data_file)
         if len(history) > 3:
@@ -590,8 +611,6 @@ elif st.session_state.page == "Community":
 elif st.session_state.page == "Data Entry":
     st.markdown('<div class="section-header">📥 Enter School Data</div>', unsafe_allow_html=True)
     
-    data_file = "school_data_log.csv"
-    
     # Clear data button row
     col_clear1, col_clear2 = st.columns([4, 1])
     with col_clear2:
@@ -607,16 +626,16 @@ elif st.session_state.page == "Data Entry":
         st.markdown("### 🚗 Transportation")
         col_a, col_b = st.columns(2)
         with col_a:
-            walk = st.number_input("Students who walked:", min_value=0, max_value=1000, value=135)
-            bike = st.number_input("Students who biked:", min_value=0, max_value=1000, value=45)
+            walk = st.number_input("Students who walked:", min_value=0, max_value=1000, value=145)
+            bike = st.number_input("Students who biked:", min_value=0, max_value=1000, value=47)
         with col_b:
-            car_alone = st.number_input("Students in car alone:", min_value=0, max_value=1000, value=54)
+            car_alone = st.number_input("Students in car alone:", min_value=0, max_value=1000, value=50)
         
         st.markdown("### 🗑️ Cafeteria Waste")
-        food_waste = st.number_input("Pounds of uneaten food:", min_value=0.0, max_value=500.0, value=24.0, step=1.0)
+        food_waste = st.number_input("Pounds of uneaten food:", min_value=0.0, max_value=500.0, value=21.0, step=1.0)
         
         st.markdown("### 💡 Energy")
-        lights_left = st.number_input("Classrooms that left lights on:", min_value=0, max_value=50, value=5)
+        lights_left = st.number_input("Classrooms that left lights on:", min_value=0, max_value=50, value=3)
         
         date = st.date_input("Date:", datetime.now())
         
