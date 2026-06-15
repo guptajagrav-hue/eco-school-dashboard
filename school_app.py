@@ -34,7 +34,7 @@ def show_ai_explanation():
 def share_on_twitter(school_name, trees, walk_percent):
     text = f"🌱 {school_name} has {trees} trees on campus & {walk_percent}% of students walk/bike to school! How does YOUR school compare? Track your impact with Eco-School Dashboard! 🌍 #EcoSchool #ClimateAction"
     encoded_text = text.replace(" ", "%20").replace("#", "%23")
-    twitter_url = f"https://twitter.com/intent/tweet?text={encoded_text}&url=https://eco-school.streamlit.app/"
+    twitter_url = f"https://twitter.com/intent/tweet?text={encoded_text}&url=https://eco-school-dashboard.streamlit.app/"
     return twitter_url
 
 # ===== WINNING FEATURE: COMMUNITY TRACKER =====
@@ -52,36 +52,53 @@ def add_community_report(school_name, action_taken):
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
 
-# ===== CUSTOM CSS =====
-if st.session_state.dark_mode:
-    dark_css = """
-    <style>
-        .stApp { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
-        .metric-card { background: #0f3460; color: white; box-shadow: 0 8px 20px rgba(0,0,0,0.3); transition: transform 0.2s; margin: 0.5rem 0; border-radius: 20px; padding: 1.5rem; }
-        .metric-card:hover { transform: translateY(-5px); background: #1a1a2e; }
-        .main-title { font-size: 3.5rem; font-weight: 800; background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0; text-align: center; }
-        .subtitle { font-size: 1.2rem; color: #dfe6e9; text-align: center; margin-bottom: 2rem; }
-        .section-header { font-size: 1.8rem; font-weight: 700; color: #00b894; margin-top: 2rem; margin-bottom: 1rem; border-left: 4px solid #00b894; padding-left: 1rem; }
-        .footer { text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #2d3436; margin-top: 3rem; }
-        .leaderboard-item { padding: 0.75rem; margin: 0.5rem 0; background: #0f3460; border-radius: 12px; color: white; }
-        .warning-box { background: #2d1a1a; border-left: 4px solid #e53e3e; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
-    </style>
-    """
-else:
-    dark_css = """
-    <style>
-        .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%); }
-        .metric-card { background: white; padding: 1.5rem; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); transition: transform 0.2s; margin: 0.5rem 0; }
-        .metric-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); }
-        .main-title { font-size: 3.5rem; font-weight: 800; background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0; text-align: center; }
-        .subtitle { font-size: 1.2rem; color: #4a5568; text-align: center; margin-bottom: 2rem; }
-        .section-header { font-size: 1.8rem; font-weight: 700; color: #1a202c; margin-top: 2rem; margin-bottom: 1rem; border-left: 4px solid #2e8b57; padding-left: 1rem; }
-        .footer { text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid rgba(46,139,86,0.15); margin-top: 3rem; }
-        .leaderboard-item { padding: 0.75rem; margin: 0.5rem 0; background: #f8faf8; border-radius: 12px; }
-        .warning-box { background: #fff5f0; border-left: 4px solid #e53e3e; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
-    </style>
-    """
-st.markdown(dark_css, unsafe_allow_html=True)
+# ===== CUSTOM CSS - FIXED FOR BOTH MODES =====
+def get_css(dark_mode):
+    if dark_mode:
+        return """
+        <style>
+            /* Dark mode styles */
+            .stApp { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+            .stApp, .stMarkdown, .stText, .stMetric, label, .stTextInput label, .stSelectbox label, .stRadio label {
+                color: #ffffff !important;
+            }
+            .metric-card { background: #0f3460; color: white; box-shadow: 0 8px 20px rgba(0,0,0,0.3); transition: transform 0.2s; margin: 0.5rem 0; border-radius: 20px; padding: 1.5rem; }
+            .metric-card:hover { transform: translateY(-5px); background: #1a1a2e; }
+            .main-title { font-size: 3.5rem; font-weight: 800; background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0; text-align: center; }
+            .subtitle { font-size: 1.2rem; color: #dfe6e9; text-align: center; margin-bottom: 2rem; }
+            .section-header { font-size: 1.8rem; font-weight: 700; color: #00b894; margin-top: 2rem; margin-bottom: 1rem; border-left: 4px solid #00b894; padding-left: 1rem; }
+            .footer { text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #2d3436; margin-top: 3rem; }
+            .leaderboard-item { padding: 0.75rem; margin: 0.5rem 0; background: #0f3460; border-radius: 12px; color: white; }
+            .warning-box { background: #2d1a1a; border-left: 4px solid #e53e3e; padding: 1rem; border-radius: 8px; margin: 1rem 0; color: #ffcccc; }
+            .stButton > button { background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); color: #1a1a2e; border: none; border-radius: 30px; padding: 0.5rem 1.5rem; font-weight: bold; transition: all 0.2s ease; }
+            .stButton > button:hover { transform: scale(1.02); background: linear-gradient(135deg, #55efc4 0%, #00b894 100%); cursor: pointer; }
+            div[data-testid="stMetricValue"] { color: #00b894 !important; }
+            div[data-testid="stMetricDelta"] { color: #55efc4 !important; }
+        </style>
+        """
+    else:
+        return """
+        <style>
+            /* Light mode styles - FIXED TEXT COLORS */
+            .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%); }
+            .stApp, .stMarkdown, .stText, label, .stTextInput label, .stSelectbox label, .stRadio label {
+                color: #1a202c !important;
+            }
+            .metric-card { background: white; color: #1a202c; padding: 1.5rem; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); transition: transform 0.2s; margin: 0.5rem 0; }
+            .metric-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); }
+            .main-title { font-size: 3.5rem; font-weight: 800; background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0; text-align: center; }
+            .subtitle { font-size: 1.2rem; color: #4a5568; text-align: center; margin-bottom: 2rem; }
+            .section-header { font-size: 1.8rem; font-weight: 700; color: #1a202c; margin-top: 2rem; margin-bottom: 1rem; border-left: 4px solid #2e8b57; padding-left: 1rem; }
+            .footer { text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid rgba(46,139,86,0.15); margin-top: 3rem; }
+            .leaderboard-item { padding: 0.75rem; margin: 0.5rem 0; background: #f8faf8; border-radius: 12px; color: #1a202c; }
+            .warning-box { background: #fff5f0; border-left: 4px solid #e53e3e; padding: 1rem; border-radius: 8px; margin: 1rem 0; color: #c53030; }
+            .stButton > button { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; border: none; border-radius: 30px; padding: 0.5rem 1.5rem; font-weight: bold; transition: all 0.2s ease; }
+            .stButton > button:hover { transform: scale(1.02); background: linear-gradient(135deg, #3cb371 0%, #2e8b57 100%); cursor: pointer; }
+            div[data-testid="stMetricValue"] { color: #2e8b57 !important; }
+        </style>
+        """
+
+st.markdown(get_css(st.session_state.dark_mode), unsafe_allow_html=True)
 
 # ===== HEADER with Dark Mode Toggle =====
 col_title, col_toggle = st.columns([4, 1])
@@ -98,7 +115,7 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("### 🎯 Winning Features")
-    if st.button("🤖 Why AI? (Judges: Read this!)", use_container_width=True):
+    if st.button("🤖 Why AI?"):
         show_ai_explanation()
     
     st.markdown("---")
@@ -109,9 +126,9 @@ with st.sidebar:
     )
     st.markdown("---")
     st.markdown("### 🤝 Share Your Impact")
-    if st.button("🐦 Share on Twitter", use_container_width=True):
+    if st.button("🐦 Share on Twitter"):
         twitter_url = share_on_twitter(school_name, 31, 40)
-        st.markdown(f'<a href="{twitter_url}" target="_blank"><button style="background:#1DA1F2; color:white; padding:10px; border:none; border-radius:10px; width:100%;">Open Twitter</button></a>', unsafe_allow_html=True)
+        st.markdown(f'<a href="{twitter_url}" target="_blank">Click here to open Twitter</a>', unsafe_allow_html=True)
 
 # ===== DEMO DATA =====
 school_data = {
@@ -149,36 +166,13 @@ if view == "📊 Dashboard Overview":
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div style="font-size: 2.5rem; font-weight: 800;">{school_data['trees_campus']}</div>
-            <div>🌳 Trees on Campus</div>
-            <small>Goal: {school_data['goal_trees']}</small>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("🌳 Trees on Campus", school_data['trees_campus'], delta=f"Goal: {school_data['goal_trees']}")
     with col2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div style="font-size: 2.5rem; font-weight: 800;">{school_data['walk_bike_percent']}%</div>
-            <div>🚶 Walk/Bike to School</div>
-            <small>Goal: {school_data['goal_walk_bike']}%</small>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("🚶 Walk/Bike to School", f"{school_data['walk_bike_percent']}%", delta=f"Goal: {school_data['goal_walk_bike']}%")
     with col3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div style="font-size: 2.5rem; font-weight: 800;">{school_data['recycled_percent']}%</div>
-            <div>♻️ Waste Diverted</div>
-            <small>Goal: {school_data['goal_recycled']}%</small>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("♻️ Waste Diverted", f"{school_data['recycled_percent']}%", delta=f"Goal: {school_data['goal_recycled']}%")
     with col4:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div style="font-size: 2.5rem; font-weight: 800;">{school_data['water_bottles_saved']}</div>
-            <div>💧 Bottles Saved This Week</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("💧 Bottles Saved This Week", school_data['water_bottles_saved'])
     
     st.markdown("---")
     
@@ -209,15 +203,9 @@ if view == "📊 Dashboard Overview":
         st.markdown('<div class="section-header">📄 Paper Usage</div>', unsafe_allow_html=True)
         total_reams = school_data['paper_reams_week']
         trees_used = total_reams / 16.6
-        st.markdown(f"""
-        <div class="metric-card" style="text-align: center;">
-            <div style="font-size: 2rem;">{total_reams}</div>
-            <div>Reams of paper per week</div>
-            <hr>
-            <div style="font-size: 2rem;">{trees_used:.1f}</div>
-            <div>Trees used per year</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("Reams of paper per week", total_reams)
+        st.metric("Trees used per year", f"{trees_used:.1f}")
+        st.info("💡 Printing two-sided would save 50% of paper!")
 
 # ===== CLASSROOM LEADERBOARD =====
 elif view == "🏆 Classroom Leaderboard":
@@ -276,6 +264,7 @@ elif view == "🌱 Community Tracker":
     if st.button("✅ Log This Action"):
         add_community_report(school_name, selected_action)
         st.success("Thanks for helping your school go green! 🌍")
+        st.balloons()
     
     if st.session_state.community_reports:
         st.markdown("**Recent actions from schools like yours:**")
@@ -292,7 +281,8 @@ elif view == "📥 Data Entry":
         car_alone = st.number_input("Students in car alone:", min_value=0, value=54)
         food_waste = st.number_input("Pounds of uneaten food:", min_value=0.0, value=24.0)
         
-        if st.form_submit_button("💾 Save Data"):
+        submitted = st.form_submit_button("💾 Save Data")
+        if submitted:
             st.success("✅ Data saved! Track progress week over week.")
             st.balloons()
 
