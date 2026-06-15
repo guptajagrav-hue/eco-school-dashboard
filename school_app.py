@@ -52,6 +52,17 @@ def get_css(dark_mode):
         div[data-testid="stDataFrame"] td { color: white; }
         [data-testid="stSidebar"] { background: #0f3460; }
         [data-testid="stSidebar"] * { color: white !important; }
+        /* School name input box dark mode */
+        .stTextInput > div > div > input {
+            background-color: #1a1a2e !important;
+            color: #ffffff !important;
+            border: 1px solid #00b894 !important;
+            border-radius: 8px !important;
+        }
+        .stTextInput > div > div > input:focus {
+            border-color: #55efc4 !important;
+            box-shadow: 0 0 0 2px rgba(0, 184, 148, 0.2) !important;
+        }
         </style>
         """
     else:
@@ -76,6 +87,20 @@ def get_css(dark_mode):
         .stButton > button { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; }
         [data-testid="stSidebar"] { background: #ffffff; }
         [data-testid="stSidebar"] * { color: #1a202c !important; }
+        /* School name input box light mode - FIXED VISIBILITY */
+        .stTextInput > div > div > input {
+            background-color: #ffffff !important;
+            color: #1a202c !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+        }
+        .stTextInput > div > div > input:focus {
+            border-color: #2e8b57 !important;
+            box-shadow: 0 0 0 2px rgba(46, 139, 86, 0.1) !important;
+        }
+        .stTextInput > div > div > input::placeholder {
+            color: #a0aec0 !important;
+        }
         </style>
         """
 
