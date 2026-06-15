@@ -12,7 +12,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ===== CUSTOM CSS FOR COLORFUL CARDS =====
+# ===== CUSTOM CSS =====
 st.markdown("""
 <style>
 /* Card styling */
@@ -47,7 +47,7 @@ st.markdown("""
     opacity: 0.8;
 }
 
-/* Color themes for cards */
+/* Color themes */
 .card-green { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; }
 .card-blue { background: linear-gradient(135deg, #1e6f9f 0%, #3b82f6 100%); color: white; }
 .card-orange { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: white; }
@@ -62,6 +62,37 @@ st.markdown("""
     margin: 1.5rem 0 1rem 0;
     padding-left: 0.8rem;
     border-left: 4px solid #2e8b57;
+}
+
+/* Top Navigation Bar */
+.top-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+    padding: 0.5rem;
+    background: white;
+    border-radius: 50px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.nav-btn {
+    background: transparent;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 40px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #4a5568;
+}
+.nav-btn:hover {
+    background: #e2e8f0;
+}
+.nav-btn-active {
+    background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%);
+    color: white;
 }
 
 /* Leaderboard items */
@@ -96,7 +127,7 @@ st.markdown("""
     margin-top: 2rem;
 }
 
-/* Hexagon chart container */
+/* Hexagon container */
 .hexagon-container {
     background: white;
     border-radius: 24px;
@@ -104,37 +135,60 @@ st.markdown("""
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     text-align: center;
 }
+
+/* School profile header */
+.profile-header {
+    background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%);
+    border-radius: 24px;
+    padding: 1.5rem;
+    color: white;
+    margin-bottom: 1rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# ===== HEADER =====
-st.markdown('<h1 style="text-align: center; color: #2e8b57;">🌱 Eco-School Dashboard</h1>', unsafe_allow_html=True)
-st.markdown('<p style="text-align: center; color: #4a5568;">Track your school\'s environmental impact · AI-powered insights</p>', unsafe_allow_html=True)
+# ===== SESSION STATE FOR NAVIGATION =====
+if 'page' not in st.session_state:
+    st.session_state.page = "Dashboard"
 
-# ===== SIDEBAR =====
+# ===== NAVIGATION BUTTONS (Horizontal - Like Previous Site) =====
+st.markdown("""
+<div style="display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap; margin: 1rem 0;">
+    <button class="nav-btn" onclick="window.location.href='?page=Dashboard'">📊 Dashboard</button>
+    <button class="nav-btn" onclick="window.location.href='?page=Leaderboard'">🏆 Leaderboard</button>
+    <button class="nav-btn" onclick="window.location.href='?page=Action Plan'">📋 Action Plan</button>
+    <button class="nav-btn" onclick="window.location.href='?page=Simulator'">🌡️ Simulator</button>
+    <button class="nav-btn" onclick="window.location.href='?page=Community'">🌱 Community</button>
+    <button class="nav-btn" onclick="window.location.href='?page=Data Entry'">📥 Data Entry</button>
+</div>
+""", unsafe_allow_html=True)
+
+# Handle navigation via query params
+query_params = st.query_params
+if 'page' in query_params:
+    st.session_state.page = query_params['page']
+
+# Active page display
+page = st.session_state.page
+
+# ===== SCHOOL PROFILE HEADER =====
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    st.markdown(f"""
+    <div class="profile-header" style="text-align: center;">
+        <h2>🌱 {school_name if 'school_name' in dir() else 'Washington Middle School'}</h2>
+        <p>Environmental Profile · AI-Powered Insights</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ===== SIDEBAR (Minimal - Only for settings) =====
 with st.sidebar:
-    st.markdown("### 🏫 Your School")
+    st.markdown("### ⚙️ Settings")
     school_name = st.text_input("School Name:", value="Washington Middle School")
-    
     st.markdown("---")
-    
     if st.button("🤖 Why AI?", use_container_width=True):
         st.info("AI analyzes transportation, waste, and energy data to find the highest-impact actions for YOUR school.")
-    
     st.markdown("---")
-    
-    st.markdown("### 📍 Navigate")
-    view = st.radio("", [
-        "📊 Dashboard", 
-        "🏆 Leaderboard", 
-        "📋 Action Plan", 
-        "🌡️ Simulator", 
-        "🌱 Community", 
-        "📥 Data Entry"
-    ], label_visibility="collapsed")
-    
-    st.markdown("---")
-    
     st.link_button("🐦 Share on Twitter", "https://twitter.com/intent/tweet?text=Check%20out%20Eco-School%20Dashboard!%20🌱", use_container_width=True)
 
 # ===== DATA =====
@@ -160,7 +214,7 @@ school_data = {
     }
 }
 
-# Calculate environmental profile scores (0-100)
+# Environmental profile scores
 environmental_profile = {
     "🌳 Tree Canopy": min(100, (school_data["trees"] / school_data["goal_trees"]) * 100),
     "🚶 Active Transport": min(100, (school_data["walk_bike"] / school_data["goal_walk_bike"]) * 100),
@@ -170,17 +224,13 @@ environmental_profile = {
     "💧 Water Conservation": min(100, (school_data["bottles"] / 500) * 100),
 }
 
-# ===== FUNCTION TO CREATE HEXAGONAL RADAR CHART (FIXED) =====
+# ===== HEXAGON CHART FUNCTION =====
 def create_hexagon_chart(scores, title="Environmental Profile"):
-    """Create a hexagonal radar/spider chart"""
-    
     categories = list(scores.keys())
     values = list(scores.values())
     
-    # Create radar chart
     fig = go.Figure()
     
-    # Add your school's data
     fig.add_trace(go.Scatterpolar(
         r=values,
         theta=categories,
@@ -192,7 +242,6 @@ def create_hexagon_chart(scores, title="Environmental Profile"):
         marker=dict(size=8, color='#2e8b57')
     ))
     
-    # Add ideal reference line (100%)
     fig.add_trace(go.Scatterpolar(
         r=[100] * len(categories),
         theta=categories,
@@ -203,7 +252,6 @@ def create_hexagon_chart(scores, title="Environmental Profile"):
         fill='none'
     ))
     
-    # Update layout
     fig.update_layout(
         polar=dict(
             radialaxis=dict(
@@ -240,34 +288,30 @@ def create_hexagon_chart(scores, title="Environmental Profile"):
     
     return fig
 
-# ===== DASHBOARD =====
-if view == "📊 Dashboard":
-    st.markdown(f'<div class="section-header">📊 {school_name} Dashboard</div>', unsafe_allow_html=True)
+# ===== DASHBOARD PAGE =====
+if page == "Dashboard":
+    st.markdown('<div class="section-header">📊 Environmental Dashboard</div>', unsafe_allow_html=True)
     
-    # Row 1: Environmental Profile Hexagon Chart
+    # Hexagon Chart
     st.markdown('<div class="hexagon-container">', unsafe_allow_html=True)
     st.markdown('<h3 style="text-align: center; margin-bottom: 1rem;">🌿 Environmental Profile</h3>', unsafe_allow_html=True)
     
-    # Create and display the hexagon chart
     hex_fig = create_hexagon_chart(environmental_profile, f"{school_name} - 6 Pillars of Sustainability")
     st.plotly_chart(hex_fig, use_container_width=True)
     
-    # Calculate and display overall score
     avg_score = sum(environmental_profile.values()) / len(environmental_profile)
     st.markdown(f"""
     <div style="text-align: center; margin-top: 0.5rem;">
         <span style="background: #2e8b57; color: white; padding: 0.5rem 1.5rem; border-radius: 30px; font-weight: bold;">
-            🌟 Overall Environmental Score: {avg_score:.0f}/100
+            🌟 Overall Score: {avg_score:.0f}/100
         </span>
     </div>
     """, unsafe_allow_html=True)
-    
-    st.caption("📊 This hexagonal chart shows your school's performance across 6 key environmental categories. The green area is your school; the gray dashed line is the 100% goal.")
     st.markdown('</div>', unsafe_allow_html=True)
     
     st.markdown("---")
     
-    # Row 2: Main metrics
+    # Metrics Row
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
@@ -275,7 +319,6 @@ if view == "📊 Dashboard":
         <div class="metric-card card-green">
             <div class="metric-value">{school_data["trees"]}<span style="font-size:1rem;"> / {school_data["goal_trees"]}</span></div>
             <div class="metric-label">🌳 Trees on Campus</div>
-            <div class="metric-sub">+{school_data["goal_trees"] - school_data["trees"]} needed</div>
         </div>
         ''', unsafe_allow_html=True)
     
@@ -284,7 +327,6 @@ if view == "📊 Dashboard":
         <div class="metric-card card-blue">
             <div class="metric-value">{school_data["walk_bike"]}<span style="font-size:1rem;">%</span></div>
             <div class="metric-label">🚶 Walk/Bike to School</div>
-            <div class="metric-sub">Goal: {school_data["goal_walk_bike"]}%</div>
         </div>
         ''', unsafe_allow_html=True)
     
@@ -293,7 +335,6 @@ if view == "📊 Dashboard":
         <div class="metric-card card-purple">
             <div class="metric-value">{school_data["recycle"]}<span style="font-size:1rem;">%</span></div>
             <div class="metric-label">♻️ Waste Diverted</div>
-            <div class="metric-sub">Goal: {school_data["goal_recycle"]}%</div>
         </div>
         ''', unsafe_allow_html=True)
     
@@ -302,229 +343,105 @@ if view == "📊 Dashboard":
         <div class="metric-card card-teal">
             <div class="metric-value">{school_data["bottles"]}</div>
             <div class="metric-label">💧 Bottles Saved/Week</div>
-            <div class="metric-sub">Plastic bottles kept from landfill</div>
         </div>
         ''', unsafe_allow_html=True)
     
-    # Row 3: Problem cards
+    # Problem Areas
     st.markdown('<div class="section-header">⚠️ Areas Needing Attention</div>', unsafe_allow_html=True)
     
     col5, col6, col7 = st.columns(3)
-    
     with col5:
         st.markdown(f'''
         <div class="metric-card card-red">
             <div class="metric-value">{school_data["car_alone"]}</div>
             <div class="metric-label">🚗 Solo Cars Daily</div>
-            <div class="metric-sub">Save {school_data["co2_save"]} lbs CO2/week</div>
         </div>
         ''', unsafe_allow_html=True)
-    
     with col6:
         st.markdown(f'''
         <div class="metric-card card-orange">
             <div class="metric-value">{school_data["food_waste"]}<span style="font-size:1rem;"> lbs</span></div>
             <div class="metric-label">🍎 Food Wasted Daily</div>
-            <div class="metric-sub">{school_data["food_waste"] * 180:,} lbs/year</div>
         </div>
         ''', unsafe_allow_html=True)
-    
     with col7:
         st.markdown(f'''
         <div class="metric-card" style="background: linear-gradient(135deg, #4b5563 0%, #9ca3af 100%); color: white;">
-            <div class="metric-value">{school_data["paper_reams"]}<span style="font-size:1rem;"> reams/week</span></div>
-            <div class="metric-label">📄 Paper Usage</div>
-            <div class="metric-sub">{school_data["paper_reams"] / 16.6:.1f} trees/year</div>
+            <div class="metric-value">{school_data["paper_reams"]}<span style="font-size:1rem;"> reams</span></div>
+            <div class="metric-label">📄 Paper/Week</div>
         </div>
         ''', unsafe_allow_html=True)
-    
-    # Row 4: Classroom energy
-    st.markdown('<div class="section-header">💡 Classroom Energy Scores</div>', unsafe_allow_html=True)
-    
-    cols = st.columns(5)
-    for idx, (room, data) in enumerate(school_data['classrooms'].items()):
-        score = data['score']
-        if score >= 80:
-            color = "card-green"
-        elif score >= 50:
-            color = "card-teal"
-        else:
-            color = "card-red"
-        
-        with cols[idx]:
-            st.markdown(f'''
-            <div class="metric-card {color}">
-                <div class="metric-value">{score}</div>
-                <div class="metric-label">{room}</div>
-                <div class="metric-sub">{"✅ Lights Off" if data['lights'] else "❌ Lights Left On"}</div>
-            </div>
-            ''', unsafe_allow_html=True)
-    
-    # Detailed breakdown
-    with st.expander("📊 View Detailed Environmental Profile Breakdown"):
-        st.markdown("### Category Scores (0-100)")
-        for category, score in environmental_profile.items():
-            st.markdown(f"**{category}:** {score:.0f}/100")
-            st.progress(int(score))
-        st.caption("These 6 scores are combined to create the hexagonal environmental profile chart above.")
 
-# ===== LEADERBOARD =====
-elif view == "🏆 Leaderboard":
+# ===== LEADERBOARD PAGE =====
+elif page == "Leaderboard":
     st.markdown('<div class="section-header">🏆 Green Classroom Leaderboard</div>', unsafe_allow_html=True)
     
     leaderboard = []
     for room, data in school_data['classrooms'].items():
         leaderboard.append({"room": room, "score": data['score'], "lights": data['lights']})
-    
     leaderboard = sorted(leaderboard, key=lambda x: x['score'], reverse=True)
     
     for i, item in enumerate(leaderboard):
-        if i == 0:
-            medal = "🥇"
-            bg = "#fef3c7"
-        elif i == 1:
-            medal = "🥈"
-            bg = "#f0fdf4"
-        elif i == 2:
-            medal = "🥉"
-            bg = "#e0f2fe"
-        else:
-            medal = f"{i+1}."
-            bg = "#f8faf8"
-        
+        medal = "🥇" if i == 0 else "🥈" if i == 1 else "🥉" if i == 2 else f"{i+1}."
         lights_status = "✅ Lights Off" if item['lights'] else "❌ Lights Left On"
-        
-        st.markdown(f'''
-        <div class="leaderboard-item" style="background: {bg};">
-            <div style="display: flex; justify-content: space-between; width: 100%;">
-                <div style="font-size: 1.3rem; font-weight: 700;">{medal}</div>
-                <div style="font-weight: 600;">{item['room']}</div>
-                <div style="font-weight: 800; color: #2e8b57;">{item['score']} points</div>
-                <div style="font-size: 0.8rem;">{lights_status}</div>
-            </div>
-        </div>
-        ''', unsafe_allow_html=True)
-    
-    st.markdown("---")
-    st.markdown("### 📋 Weekly Challenge Checklist")
-    col_check1, col_check2 = st.columns(2)
-    with col_check1:
-        st.checkbox("☐ Turn off lights when leaving (10 points/day)")
-        st.checkbox("☐ Shut down computers at end of day (10 points/day)")
-    with col_check2:
-        st.checkbox("☐ Sort waste correctly (20 points/day)")
-        st.checkbox("☐ Walk, bike, or carpool to school (15 points/day)")
+        st.markdown(f'<div class="leaderboard-item"><b>{medal}</b> {item["room"]} — <b>{item["score"]} points</b> | {lights_status}</div>', unsafe_allow_html=True)
 
-# ===== ACTION PLAN =====
-elif view == "📋 Action Plan":
-    st.markdown('<div class="section-header">📋 Your School\'s Custom Action Plan</div>', unsafe_allow_html=True)
-    
-    # Show lowest scoring categories
-    low_scores = [(cat, score) for cat, score in environmental_profile.items() if score < 60]
-    if low_scores:
-        st.warning(f"⚠️ Priority areas based on your Environmental Profile: {', '.join([cat for cat, _ in low_scores])}")
+# ===== ACTION PLAN PAGE =====
+elif page == "Action Plan":
+    st.markdown('<div class="section-header">📋 Custom Action Plan</div>', unsafe_allow_html=True)
     
     st.markdown(f'''
     <div class="action-item action-priority-1">
         <strong>🔴 PRIORITY 1: Reduce Solo Car Drop-offs</strong><br>
-        <strong>Problem:</strong> {school_data["car_alone"]} cars arrive daily with just one student.<br>
-        <strong>Solution:</strong> Launch a "Walk & Roll Wednesday" program.<br>
-        <strong>Impact:</strong> Save {school_data["co2_save"]} lbs CO2/week.
+        🚗 {school_data["car_alone"]} solo cars daily → Save {school_data["co2_save"]} lbs CO2/week
     </div>
-    ''', unsafe_allow_html=True)
-    
-    st.markdown(f'''
     <div class="action-item action-priority-2">
-        <strong>🟠 PRIORITY 2: Stop Wasting Edible Food</strong><br>
-        <strong>Problem:</strong> {school_data["food_waste"]} lbs of unopened food thrown away daily.<br>
-        <strong>Solution:</strong> Start a "Share Table".<br>
-        <strong>Impact:</strong> Divert {school_data["food_waste"] * 180:,} lbs/year to hungry people.
+        <strong>🟠 PRIORITY 2: Stop Wasting Food</strong><br>
+        🍎 {school_data["food_waste"]} lbs wasted daily → Divert {school_data["food_waste"] * 180:,} lbs/year
     </div>
-    ''', unsafe_allow_html=True)
-    
-    st.markdown(f'''
     <div class="action-item action-priority-3">
         <strong>🟢 PRIORITY 3: Turn Off Lights</strong><br>
-        <strong>Problem:</strong> {school_data["lights_on"]} classrooms leave lights on when empty.<br>
-        <strong>Solution:</strong> Assign daily "Energy Monitor" student job.<br>
-        <strong>Impact:</strong> Save $50/month on electricity bills.
+        💡 {school_data["lights_on"]} classrooms leave lights on → Save $50/month
     </div>
     ''', unsafe_allow_html=True)
 
-# ===== SIMULATOR =====
-elif view == "🌡️ Simulator":
+# ===== SIMULATOR PAGE =====
+elif page == "Simulator":
     st.markdown('<div class="section-header">🌡️ What If Simulator</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
-    
     with col1:
-        st.markdown('<div class="metric-card card-green" style="text-align: center; padding: 1.5rem;">', unsafe_allow_html=True)
-        trees = st.slider("🌳 Trees to plant:", 0, 100, 20, key="trees_sim")
-        temp_reduction = trees * 0.3
-        st.markdown(f'<div class="metric-value">-{temp_reduction:.1f}°F</div>', unsafe_allow_html=True)
-        st.markdown('<div class="metric-label">Temperature Reduction</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    
+        trees = st.slider("🌳 Trees to plant:", 0, 100, 20)
+        st.metric("Temperature Reduction", f"-{trees * 0.3:.1f}°F")
     with col2:
-        st.markdown('<div class="metric-card card-blue" style="text-align: center; padding: 1.5rem;">', unsafe_allow_html=True)
-        walk_pct = st.slider("🚶 Increase walk/bike by:", 0, 100, 20, key="walk_sim")
-        cars_removed = int(54 * walk_pct / 100)
-        st.markdown(f'<div class="metric-value">-{cars_removed}</div>', unsafe_allow_html=True)
-        st.markdown('<div class="metric-label">Fewer Solo Cars Daily</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        walk_pct = st.slider("🚶 Increase walk/bike by:", 0, 100, 20)
+        st.metric("Fewer Solo Cars Daily", f"-{int(54 * walk_pct / 100)}")
 
-# ===== COMMUNITY =====
-elif view == "🌱 Community":
+# ===== COMMUNITY PAGE =====
+elif page == "Community":
     st.markdown('<div class="section-header">🌱 Community Action Tracker</div>', unsafe_allow_html=True)
     
-    actions = [
-        "🌳 Planted a tree on campus",
-        "🚗 Started a carpool group",
-        "🗑️ Organized a waste audit",
-        "💡 Created an energy monitor program",
-        "💧 Added a water bottle refill station"
-    ]
+    actions = ["🌳 Planted a tree", "🚗 Started carpooling", "🗑️ Waste audit", "💡 Energy monitors", "💧 Water station"]
+    selected = st.selectbox("What did your school do?", actions)
     
-    selected = st.selectbox("What did your school do this week?", actions)
-    
-    if st.button("✅ Log This Action", type="primary"):
+    if st.button("✅ Log Action"):
         st.balloons()
-        st.success("Thanks for helping your school go green! 🌍")
-    
-    st.markdown("---")
-    st.markdown('<div class="metric-card" style="background: linear-gradient(135deg, #4b5563 0%, #9ca3af 100%); color: white; text-align: center;">', unsafe_allow_html=True)
-    st.markdown('<div class="metric-label">💡 Every action counts</div>', unsafe_allow_html=True)
-    st.markdown('<div class="metric-sub">Small changes add up to big impact!</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.success("Thanks for helping! 🌍")
 
-# ===== DATA ENTRY =====
-elif view == "📥 Data Entry":
-    st.markdown('<div class="section-header">📥 Enter Your School\'s Data</div>', unsafe_allow_html=True)
+# ===== DATA ENTRY PAGE =====
+elif page == "Data Entry":
+    st.markdown('<div class="section-header">📥 Enter School Data</div>', unsafe_allow_html=True)
     
-    with st.form("data_entry"):
-        st.markdown("### 🚗 Transportation")
-        col_a, col_b = st.columns(2)
-        with col_a:
-            walk = st.number_input("Students who walked:", min_value=0, value=135)
-            bike = st.number_input("Students who biked:", min_value=0, value=45)
-        with col_b:
-            car_alone = st.number_input("Students in car alone:", min_value=0, value=54)
-        
-        st.markdown("### 🗑️ Cafeteria Waste")
-        food_waste = st.number_input("Pounds of uneaten food:", min_value=0.0, value=24.0)
-        
-        st.markdown("### 💡 Energy")
-        lights_left = st.number_input("Classrooms that left lights on:", min_value=0, value=5)
-        
-        submitted = st.form_submit_button("💾 Save Data", type="primary")
-        
+    with st.form("data_form"):
+        walk = st.number_input("Students who walked:", 0, 500, 135)
+        bike = st.number_input("Students who biked:", 0, 500, 45)
+        submitted = st.form_submit_button("💾 Save")
         if submitted:
-            st.balloons()
-            st.success("✅ Data saved! Track progress week over week.")
+            st.success("Data saved!")
 
 # ===== FOOTER =====
 st.markdown("""
 <div class="footer">
-    <strong>🌱 Eco-School Dashboard</strong> · AI-powered · Environmental Profile Hexagon · Built for USAII Hackathon 2026
+    <strong>🌱 Eco-School Dashboard</strong> · AI-powered · Built for USAII Hackathon 2026
 </div>
 """, unsafe_allow_html=True)
