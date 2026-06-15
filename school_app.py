@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from datetime import datetime
+import numpy as np
 
 # ===== PAGE CONFIG =====
 st.set_page_config(
@@ -52,9 +54,6 @@ st.markdown("""
 .card-red { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; }
 .card-purple { background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); color: white; }
 .card-teal { background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); color: white; }
-.card-pink { background: linear-gradient(135deg, #db2777 0%, #f472b6 100%); color: white; }
-.card-indigo { background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); color: white; }
-.card-gray { background: linear-gradient(135deg, #4b5563 0%, #9ca3af 100%); color: white; }
 
 /* Section headers */
 .section-header {
@@ -74,17 +73,6 @@ st.markdown("""
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-.leaderboard-rank {
-    font-size: 1.3rem;
-    font-weight: 700;
-}
-.leaderboard-name {
-    font-weight: 600;
-}
-.leaderboard-score {
-    font-weight: 800;
-    color: #2e8b57;
 }
 
 /* Action plan items */
@@ -106,6 +94,15 @@ st.markdown("""
     font-size: 0.8rem;
     border-top: 1px solid #e2e8f0;
     margin-top: 2rem;
+}
+
+/* Hexagon chart container */
+.hexagon-container {
+    background: white;
+    border-radius: 24px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    text-align: center;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -163,11 +160,125 @@ school_data = {
     }
 }
 
+# Calculate environmental profile scores (0-100)
+# These are normalized scores for the hexagon chart
+environmental_profile = {
+    "🌳 Tree Canopy": min(100, (school_data["trees"] / school_data["goal_trees"]) * 100),
+    "🚶 Active Transport": min(100, (school_data["walk_bike"] / school_data["goal_walk_bike"]) * 100),
+    "♻️ Waste Diversion": min(100, (school_data["recycle"] / school_data["goal_recycle"]) * 100),
+    "💡 Energy Efficiency": min(100, 100 - (school_data["lights_on"] * 5)),
+    "📄 Paper Reduction": min(100, 100 - ((school_data["paper_reams"] - 8) / 8 * 100) if school_data["paper_reams"] > 8 else 100),
+    "💧 Water Conservation": min(100, (school_data["bottles"] / 500) * 100 if school_data["bottles"] < 500 else 100),
+}
+
+# ===== FUNCTION TO CREATE HEXAGONAL RADAR CHART =====
+def create_hexagon_chart(scores, title="Environmental Profile"):
+    """Create a hexagonal radar/spider chart"""
+    
+    categories = list(scores.keys())
+    values = list(scores.values())
+    
+    # Close the polygon by repeating the first value
+    categories_closed = categories + [categories[0]]
+    values_closed = values + [values[0]]
+    
+    # Create radar chart
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatterpolar(
+        r=values,
+        theta=categories,
+        fill='toself',
+        name='Your School',
+        line_color='#2e8b57',
+        fillcolor='rgba(46, 139, 86, 0.3)',
+        line_width=3,
+        marker=dict(size=8, color='#2e8b57')
+    ))
+    
+    # Add ideal reference line (100%)
+    fig.add_trace(go.Scatterpolar(
+        r=[100] * len(categories),
+        theta=categories,
+        name='Goal (100%)',
+        line_color='#cbd5e1',
+        line_dash='dash',
+        line_width=2,
+        fill='none'
+    ))
+    
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 100],
+                tickvals=[0, 25, 50, 75, 100],
+                ticktext=['0', '25', '50', '75', '100'],
+                gridcolor='#e2e8f0',
+                linecolor='#cbd5e1'
+            ),
+            angularaxis=dict(
+                tickfont=dict(size=12, weight='bold'),
+                gridcolor='#e2e8f0',
+                linecolor='#cbd5e1'
+            ),
+            bgcolor='rgba(0,0,0,0)'
+        ),
+        title=dict(
+            text=title,
+            font=dict(size=18, weight='bold', color='#2d3748'),
+            x=0.5
+        ),
+        showlegend=True,
+        legend=dict(
+            x=0.9,
+            y=1.1,
+            orientation='h',
+            bgcolor='rgba(255,255,255,0.8)'
+        ),
+        height=500,
+        width=600,
+        margin=dict(l=80, r=80, t=80, b=80)
+    )
+    
+    # Add annotation for overall score
+    avg_score = sum(values) / len(values)
+    fig.add_annotation(
+        x=0.5,
+        y=-0.15,
+        xref="paper",
+        yref="paper",
+        text=f"Overall Environmental Score: {avg_score:.0f}/100",
+        showarrow=False,
+        font=dict(size=14, weight='bold', color='#2e8b57'),
+        bgcolor='rgba(255,255,255,0.9)',
+        bordercolor='#2e8b57',
+        borderwidth=1,
+        borderpad=8,
+        borderradius=8
+    )
+    
+    return fig
+
 # ===== DASHBOARD =====
 if view == "📊 Dashboard":
     st.markdown(f'<div class="section-header">📊 {school_name} Dashboard</div>', unsafe_allow_html=True)
     
-    # Row 1: Main metrics
+    # Row 1: Environmental Profile Hexagon Chart (NEW!)
+    st.markdown('<div class="hexagon-container">', unsafe_allow_html=True)
+    st.markdown('<h3 style="text-align: center; margin-bottom: 1rem;">🌿 Environmental Profile</h3>', unsafe_allow_html=True)
+    
+    # Create and display the hexagon chart
+    hex_fig = create_hexagon_chart(environmental_profile, f"{school_name} - 6 Pillars of Sustainability")
+    st.plotly_chart(hex_fig, use_container_width=True)
+    
+    # Add explanation of the chart
+    st.caption("📊 This hexagonal chart shows your school's performance across 6 key environmental categories. The green area is your school; the gray dashed line is the 100% goal. The closer you are to the outer edge, the better!")
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Row 2: Main metrics
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
@@ -206,7 +317,7 @@ if view == "📊 Dashboard":
         </div>
         ''', unsafe_allow_html=True)
     
-    # Row 2: Problem cards
+    # Row 3: Problem cards
     st.markdown('<div class="section-header">⚠️ Areas Needing Attention</div>', unsafe_allow_html=True)
     
     col5, col6, col7 = st.columns(3)
@@ -216,7 +327,7 @@ if view == "📊 Dashboard":
         <div class="metric-card card-red">
             <div class="metric-value">{school_data["car_alone"]}</div>
             <div class="metric-label">🚗 Solo Cars Daily</div>
-            <div class="metric-sub">Save {school_data["co2_save"]} lbs CO2/week with carpooling</div>
+            <div class="metric-sub">Save {school_data["co2_save"]} lbs CO2/week</div>
         </div>
         ''', unsafe_allow_html=True)
     
@@ -225,20 +336,20 @@ if view == "📊 Dashboard":
         <div class="metric-card card-orange">
             <div class="metric-value">{school_data["food_waste"]}<span style="font-size:1rem;"> lbs</span></div>
             <div class="metric-label">🍎 Food Wasted Daily</div>
-            <div class="metric-sub">{school_data["food_waste"] * 180:,} lbs/year could feed hungry people</div>
+            <div class="metric-sub">{school_data["food_waste"] * 180:,} lbs/year</div>
         </div>
         ''', unsafe_allow_html=True)
     
     with col7:
         st.markdown(f'''
-        <div class="metric-card card-gray">
+        <div class="metric-card" style="background: linear-gradient(135deg, #4b5563 0%, #9ca3af 100%); color: white;">
             <div class="metric-value">{school_data["paper_reams"]}<span style="font-size:1rem;"> reams/week</span></div>
             <div class="metric-label">📄 Paper Usage</div>
-            <div class="metric-sub">{school_data["paper_reams"] / 16.6:.1f} trees used per year</div>
+            <div class="metric-sub">{school_data["paper_reams"] / 16.6:.1f} trees/year</div>
         </div>
         ''', unsafe_allow_html=True)
     
-    # Row 3: Classroom energy
+    # Row 4: Classroom energy
     st.markdown('<div class="section-header">💡 Classroom Energy Scores</div>', unsafe_allow_html=True)
     
     cols = st.columns(5)
@@ -259,6 +370,14 @@ if view == "📊 Dashboard":
                 <div class="metric-sub">{"✅ Lights Off" if data['lights'] else "❌ Lights Left On"}</div>
             </div>
             ''', unsafe_allow_html=True)
+    
+    # Detailed breakdown of hexagon scores
+    with st.expander("📊 View Detailed Environmental Profile Breakdown"):
+        st.markdown("### Category Scores (0-100)")
+        for category, score in environmental_profile.items():
+            st.markdown(f"**{category}:** {score:.0f}/100")
+            st.progress(int(score))
+        st.caption("These 6 scores are combined to create the hexagonal environmental profile chart above.")
 
 # ===== LEADERBOARD =====
 elif view == "🏆 Leaderboard":
@@ -289,9 +408,9 @@ elif view == "🏆 Leaderboard":
         st.markdown(f'''
         <div class="leaderboard-item" style="background: {bg};">
             <div style="display: flex; justify-content: space-between; width: 100%;">
-                <div class="leaderboard-rank">{medal}</div>
-                <div class="leaderboard-name">{item['room']}</div>
-                <div class="leaderboard-score">{item['score']} points</div>
+                <div style="font-size: 1.3rem; font-weight: 700;">{medal}</div>
+                <div style="font-weight: 600;">{item['room']}</div>
+                <div style="font-weight: 800; color: #2e8b57;">{item['score']} points</div>
                 <div style="font-size: 0.8rem;">{lights_status}</div>
             </div>
         </div>
@@ -299,14 +418,23 @@ elif view == "🏆 Leaderboard":
     
     st.markdown("---")
     st.markdown("### 📋 Weekly Challenge Checklist")
-    st.checkbox("☐ Turn off lights when leaving (10 points/day)")
-    st.checkbox("☐ Shut down computers at end of day (10 points/day)")
-    st.checkbox("☐ Sort waste correctly (20 points/day)")
-    st.checkbox("☐ Walk, bike, or carpool to school (15 points/day)")
+    col_check1, col_check2 = st.columns(2)
+    with col_check1:
+        st.checkbox("☐ Turn off lights when leaving (10 points/day)")
+        st.checkbox("☐ Shut down computers at end of day (10 points/day)")
+    with col_check2:
+        st.checkbox("☐ Sort waste correctly (20 points/day)")
+        st.checkbox("☐ Walk, bike, or carpool to school (15 points/day)")
 
 # ===== ACTION PLAN =====
 elif view == "📋 Action Plan":
     st.markdown('<div class="section-header">📋 Your School\'s Custom Action Plan</div>', unsafe_allow_html=True)
+    
+    # Show the hexagon chart with lowest scores highlighted
+    st.markdown("### Based on Your Environmental Profile:")
+    low_scores = [(cat, score) for cat, score in environmental_profile.items() if score < 60]
+    if low_scores:
+        st.warning(f"⚠️ Priority areas: {', '.join([cat for cat, _ in low_scores])}")
     
     st.markdown(f'''
     <div class="action-item action-priority-1">
@@ -376,7 +504,7 @@ elif view == "🌱 Community":
         st.success("Thanks for helping your school go green! 🌍")
     
     st.markdown("---")
-    st.markdown('<div class="metric-card card-gray" style="text-align: center;">', unsafe_allow_html=True)
+    st.markdown('<div class="metric-card" style="background: linear-gradient(135deg, #4b5563 0%, #9ca3af 100%); color: white; text-align: center;">', unsafe_allow_html=True)
     st.markdown('<div class="metric-label">💡 Every action counts</div>', unsafe_allow_html=True)
     st.markdown('<div class="metric-sub">Small changes add up to big impact!</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -409,6 +537,6 @@ elif view == "📥 Data Entry":
 # ===== FOOTER =====
 st.markdown("""
 <div class="footer">
-    <strong>🌱 Eco-School Dashboard</strong> · AI-powered · Built for USAII Hackathon 2026
+    <strong>🌱 Eco-School Dashboard</strong> · AI-powered · Environmental Profile Hexagon · Built for USAII Hackathon 2026
 </div>
 """, unsafe_allow_html=True)
