@@ -18,86 +18,313 @@ st.set_page_config(
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
 
-# ===== CUSTOM CSS =====
-def get_css(dark_mode):
-    if dark_mode:
-        return """
-        <style>
-        /* Dark mode styles */
-        .stApp { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
-        .metric-card { background: #0f3460; color: white; border-radius: 20px; padding: 1.2rem; text-align: center; margin-bottom: 1rem; transition: transform 0.2s; }
-        .metric-card:hover { transform: translateY(-5px); }
-        .metric-value { font-size: 2.2rem; font-weight: 800; color: white; }
-        .metric-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #dfe6e9; }
-        .section-header { font-size: 1.5rem; font-weight: 700; color: #00b894; margin-top: 1.5rem; margin-bottom: 1rem; border-left: 4px solid #00b894; padding-left: 1rem; }
-        .leaderboard-item { background: #0f3460; color: white; padding: 0.8rem 1rem; border-radius: 12px; margin: 0.5rem 0; display: flex; justify-content: space-between; align-items: center; }
-        .profile-box { background: #0f3460; border-radius: 24px; padding: 1.5rem; text-align: center; margin-bottom: 1rem; }
-        .footer { text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #2d3436; margin-top: 2rem; }
-        .stMarkdown, .stText, label, .stMetric label, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label { color: #ffffff !important; }
-        .stMetric div[data-testid="stMetricValue"] { color: #00b894 !important; }
-        .stButton > button { background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); color: #1a1a2e; border-radius: 30px; transition: all 0.2s; }
-        .stButton > button:hover { transform: scale(1.02); }
-        /* Sidebar dark mode */
-        [data-testid="stSidebar"] { background: #0f3460; }
-        [data-testid="stSidebar"] * { color: white !important; }
-        [data-testid="stSidebar"] .stTextInput > div > div > input { background-color: #1a1a2e !important; color: white !important; border: 1px solid #00b894 !important; border-radius: 8px !important; }
-        [data-testid="stSidebar"] .stSelectbox > div > div { background-color: #1a1a2e !important; color: white !important; }
-        /* Card colors */
-        .card-green { background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); color: white; }
-        .card-blue { background: linear-gradient(135deg, #1e6f9f 0%, #3b82f6 100%); color: white; }
-        .card-orange { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: white; }
-        .card-red { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; }
-        .card-purple { background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); color: white; }
-        .card-teal { background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); color: white; }
-        </style>
-        """
-    else:
-        return """
-        <style>
-        /* Light mode styles */
-        .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%); }
-        .metric-card { background: white; color: #1a202c; border-radius: 20px; padding: 1.2rem; text-align: center; margin-bottom: 1rem; transition: transform 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .metric-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-        .metric-value { font-size: 2.2rem; font-weight: 800; color: #1a202c; }
-        .metric-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #4a5568; }
-        .section-header { font-size: 1.5rem; font-weight: 700; color: #1a202c; margin-top: 1.5rem; margin-bottom: 1rem; border-left: 4px solid #2e8b57; padding-left: 1rem; }
-        .leaderboard-item { background: #f8faf8; color: #1a202c; padding: 0.8rem 1rem; border-radius: 12px; margin: 0.5rem 0; display: flex; justify-content: space-between; align-items: center; }
-        .profile-box { background: white; border-radius: 24px; padding: 1.5rem; text-align: center; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .footer { text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #e2e8f0; margin-top: 2rem; }
-        .stMarkdown, .stText, label, .stMetric label, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label { color: #1a202c !important; }
-        .stMetric div[data-testid="stMetricValue"] { color: #2e8b57 !important; }
-        .stButton > button { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; border-radius: 30px; transition: all 0.2s; }
-        .stButton > button:hover { transform: scale(1.02); }
-        /* Sidebar light mode - FIXED: white background, dark text */
-        [data-testid="stSidebar"] { background: #ffffff; }
-        [data-testid="stSidebar"] * { color: #1a202c !important; }
-        [data-testid="stSidebar"] .stTextInput > div > div > input { background-color: #ffffff !important; color: #1a202c !important; border: 1px solid #cbd5e1 !important; border-radius: 8px !important; }
-        [data-testid="stSidebar"] .stSelectbox > div > div { background-color: #ffffff !important; color: #1a202c !important; border: 1px solid #cbd5e1 !important; }
-        [data-testid="stSidebar"] .stSuccess { background-color: #e6f7e6 !important; color: #2e8b57 !important; }
-        /* Card colors */
-        .card-green { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; }
-        .card-blue { background: linear-gradient(135deg, #1e6f9f 0%, #3b82f6 100%); color: white; }
-        .card-orange { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: white; }
-        .card-red { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; }
-        .card-purple { background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); color: white; }
-        .card-teal { background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); color: white; }
-        </style>
-        """
+# ===== DARK MODE CSS (FULL TEXT COLOR SUPPORT) =====
+def get_dark_mode_css():
+    return """
+    <style>
+    /* Main background */
+    .stApp {
+        background: linear-gradient(135deg, #0f1722 0%, #1a1f2e 100%);
+    }
+    
+    /* All main text */
+    .stMarkdown, .stText, .stTitle, .stHeader, .stSubheader, 
+    .stCaption, p, h1, h2, h3, h4, .stMetric label, 
+    .stNumberInput label, .stSelectbox label, .stRadio label, 
+    .stSlider label, .stCheckbox label, .stTextInput label {
+        color: #f0f3f8 !important;
+    }
+    
+    /* Metric cards */
+    .metric-card {
+        background: #1e2a3a;
+        border-radius: 20px;
+        padding: 1.2rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        transition: transform 0.2s;
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+        background: #2a3a4a;
+    }
+    .metric-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #86efac !important;
+    }
+    .metric-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #cbd5e6 !important;
+    }
+    .metric-sub {
+        font-size: 0.7rem;
+        color: #94a3b8 !important;
+    }
+    
+    /* Section headers */
+    .section-header {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #86efac !important;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #86efac;
+        padding-left: 1rem;
+    }
+    
+    /* Leaderboard items */
+    .leaderboard-item {
+        background: #1e2a3a;
+        color: #f0f3f8;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        margin: 0.5rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    /* Profile box */
+    .profile-box {
+        background: #1e2a3a;
+        border-radius: 24px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    .profile-box h3 {
+        color: #f0f3f8 !important;
+    }
+    
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background: #0f1722;
+    }
+    [data-testid="stSidebar"] * {
+        color: #f0f3f8 !important;
+    }
+    [data-testid="stSidebar"] .stTextInput > div > div > input {
+        background-color: #1e2a3a !important;
+        color: #f0f3f8 !important;
+        border: 1px solid #86efac !important;
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);
+        color: #0f1722 !important;
+        border-radius: 30px;
+        font-weight: 600;
+    }
+    .stButton > button:hover {
+        transform: scale(1.02);
+    }
+    
+    /* Metric values */
+    .stMetric div[data-testid="stMetricValue"] {
+        color: #86efac !important;
+    }
+    .stMetric div[data-testid="stMetricDelta"] {
+        color: #4ade80 !important;
+    }
+    
+    /* Dataframe */
+    .stDataFrame, div[data-testid="stDataFrame"] table, 
+    div[data-testid="stDataFrame"] th, div[data-testid="stDataFrame"] td {
+        color: #f0f3f8 !important;
+        background-color: #1e2a3a !important;
+    }
+    
+    /* Info/Warning/Success boxes */
+    .stInfo, .stWarning, .stSuccess, .stError {
+        background-color: #1e2a3a !important;
+        color: #f0f3f8 !important;
+    }
+    .stInfo { border-left-color: #86efac !important; }
+    
+    /* Footer */
+    .footer {
+        text-align: center;
+        padding: 2rem;
+        color: #94a3b8;
+        font-size: 0.8rem;
+        border-top: 1px solid #334155;
+        margin-top: 2rem;
+    }
+    
+    /* Card backgrounds */
+    .card-green { background: linear-gradient(135deg, #065f46 0%, #047857 100%); color: white; }
+    .card-blue { background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%); color: white; }
+    .card-orange { background: linear-gradient(135deg, #78350f 0%, #9a3412 100%); color: white; }
+    .card-red { background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%); color: white; }
+    .card-purple { background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%); color: white; }
+    .card-teal { background: linear-gradient(135deg, #134e4a 0%, #0f766e 100%); color: white; }
+    </style>
+    """
 
-st.markdown(get_css(st.session_state.dark_mode), unsafe_allow_html=True)
+def get_light_mode_css():
+    return """
+    <style>
+    /* Main background */
+    .stApp {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
+    }
+    
+    /* All main text */
+    .stMarkdown, .stText, .stTitle, .stHeader, .stSubheader, 
+    .stCaption, p, h1, h2, h3, h4, .stMetric label, 
+    .stNumberInput label, .stSelectbox label, .stRadio label, 
+    .stSlider label, .stCheckbox label, .stTextInput label {
+        color: #1a202c !important;
+    }
+    
+    /* Metric cards */
+    .metric-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.2rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    .metric-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #1a202c !important;
+    }
+    .metric-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #4a5568 !important;
+    }
+    .metric-sub {
+        font-size: 0.7rem;
+        color: #718096 !important;
+    }
+    
+    /* Section headers */
+    .section-header {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a202c !important;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #2e8b57;
+        padding-left: 1rem;
+    }
+    
+    /* Leaderboard items */
+    .leaderboard-item {
+        background: #f8faf8;
+        color: #1a202c;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        margin: 0.5rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    /* Profile box */
+    .profile-box {
+        background: white;
+        border-radius: 24px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .profile-box h3 {
+        color: #1a202c !important;
+    }
+    
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background: #ffffff;
+    }
+    [data-testid="stSidebar"] * {
+        color: #1a202c !important;
+    }
+    [data-testid="stSidebar"] .stTextInput > div > div > input {
+        background-color: #ffffff !important;
+        color: #1a202c !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%);
+        color: white !important;
+        border-radius: 30px;
+        font-weight: 600;
+    }
+    .stButton > button:hover {
+        transform: scale(1.02);
+    }
+    
+    /* Metric values */
+    .stMetric div[data-testid="stMetricValue"] {
+        color: #2e8b57 !important;
+    }
+    
+    /* Info/Warning/Success boxes */
+    .stInfo { background-color: #e8f0fe !important; color: #1a202c !important; }
+    .stWarning { background-color: #fff5f0 !important; color: #c53030 !important; }
+    .stSuccess { background-color: #e6f7e6 !important; color: #2e8b57 !important; }
+    
+    /* Footer */
+    .footer {
+        text-align: center;
+        padding: 2rem;
+        color: #718096;
+        font-size: 0.8rem;
+        border-top: 1px solid #e2e8f0;
+        margin-top: 2rem;
+    }
+    
+    /* Card backgrounds */
+    .card-green { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; }
+    .card-blue { background: linear-gradient(135deg, #1e6f9f 0%, #3b82f6 100%); color: white; }
+    .card-orange { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: white; }
+    .card-red { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; }
+    .card-purple { background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); color: white; }
+    .card-teal { background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); color: white; }
+    </style>
+    """
+
+# Apply the correct CSS based on dark mode
+if st.session_state.dark_mode:
+    st.markdown(get_dark_mode_css(), unsafe_allow_html=True)
+else:
+    st.markdown(get_light_mode_css(), unsafe_allow_html=True)
 
 # ===== HEADER WITH TOGGLE =====
 col_title, col_toggle = st.columns([4, 1])
 with col_title:
-    st.markdown('<h1 style="text-align: center; color: #2e8b57; margin: 0;">🌱 Eco-School Dashboard</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="text-align: center; color: #4a5568; margin-top: 0;">Track your school\'s environmental impact · AI-powered insights</p>', unsafe_allow_html=True)
+    st.markdown('<h1 style="text-align: center;">🌱 Eco-School Dashboard</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align: center;">Track your school\'s environmental impact · AI-powered insights</p>', unsafe_allow_html=True)
 with col_toggle:
-    # Simple working toggle
-    if st.button("🌙" if not st.session_state.dark_mode else "☀️", key="dark_toggle"):
-        st.session_state.dark_mode = not st.session_state.dark_mode
+    # Toggle with correct text for each mode
+    if st.session_state.dark_mode:
+        toggle_label = "☀️ Light Mode"
+    else:
+        toggle_label = "🌙 Dark Mode"
+    
+    new_mode = st.toggle(toggle_label, value=st.session_state.dark_mode)
+    if new_mode != st.session_state.dark_mode:
+        st.session_state.dark_mode = new_mode
         st.rerun()
-
-# ===== SESSION STATE FOR NAVIGATION =====
+# ===== NAVIGATION =====
 if 'page' not in st.session_state:
     st.session_state.page = "Dashboard"
 
@@ -105,32 +332,32 @@ def set_page(page_name):
     st.session_state.page = page_name
     st.rerun()
 
-# ===== NAVIGATION BUTTONS =====
+# Navigation buttons
 st.markdown('<div style="display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap; margin: 1rem 0; padding: 0.5rem; background: white; border-radius: 50px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">', unsafe_allow_html=True)
 
 cols = st.columns(6)
 with cols[0]:
-    if st.button("📊 Dashboard", key="btn_dashboard", use_container_width=True):
+    if st.button("📊 Dashboard", use_container_width=True):
         set_page("Dashboard")
 with cols[1]:
-    if st.button("🏆 Leaderboard", key="btn_leaderboard", use_container_width=True):
+    if st.button("🏆 Leaderboard", use_container_width=True):
         set_page("Leaderboard")
 with cols[2]:
-    if st.button("📋 Action Plan", key="btn_action", use_container_width=True):
+    if st.button("📋 Action Plan", use_container_width=True):
         set_page("Action Plan")
 with cols[3]:
-    if st.button("🌡️ Simulator", key="btn_simulator", use_container_width=True):
+    if st.button("🌡️ Simulator", use_container_width=True):
         set_page("Simulator")
 with cols[4]:
-    if st.button("🌱 Community", key="btn_community", use_container_width=True):
+    if st.button("🌱 Community", use_container_width=True):
         set_page("Community")
 with cols[5]:
-    if st.button("📥 Data Entry", key="btn_data", use_container_width=True):
+    if st.button("📥 Data Entry", use_container_width=True):
         set_page("Data Entry")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ===== SCHOOL PROFILE HEADER =====
+# ===== SCHOOL HEADER =====
 school_name = "Washington Middle School"
 st.markdown(f"""
 <div style="background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); border-radius: 24px; padding: 1.5rem; color: white; margin-bottom: 1rem; text-align: center;">
@@ -154,20 +381,20 @@ with st.sidebar:
         file_size = os.path.getsize(data_file) // 1024
         st.success(f"✅ {file_size} KB of data saved")
 
-# ===== CREATE DEMO DATA =====
+# ===== DEMO DATA =====
 data_file = "school_data_log.csv"
 if not os.path.exists(data_file):
     demo_data = pd.DataFrame([
-        {"date": "2026-06-10", "walk": 120, "bike": 40, "car_alone": 60, "total_students": 220, "food_waste_lbs": 28, "lights_left_on": 6},
-        {"date": "2026-06-11", "walk": 125, "bike": 42, "car_alone": 58, "total_students": 225, "food_waste_lbs": 26, "lights_left_on": 5},
-        {"date": "2026-06-12", "walk": 130, "bike": 44, "car_alone": 55, "total_students": 229, "food_waste_lbs": 25, "lights_left_on": 5},
-        {"date": "2026-06-13", "walk": 135, "bike": 45, "car_alone": 54, "total_students": 234, "food_waste_lbs": 24, "lights_left_on": 4},
-        {"date": "2026-06-14", "walk": 140, "bike": 46, "car_alone": 52, "total_students": 238, "food_waste_lbs": 22, "lights_left_on": 4},
-        {"date": "2026-06-15", "walk": 145, "bike": 47, "car_alone": 50, "total_students": 242, "food_waste_lbs": 21, "lights_left_on": 3},
+        {"date": "2026-06-10", "walk": 120, "bike": 40, "car_alone": 60, "food_waste_lbs": 28, "lights_left_on": 6},
+        {"date": "2026-06-11", "walk": 125, "bike": 42, "car_alone": 58, "food_waste_lbs": 26, "lights_left_on": 5},
+        {"date": "2026-06-12", "walk": 130, "bike": 44, "car_alone": 55, "food_waste_lbs": 25, "lights_left_on": 5},
+        {"date": "2026-06-13", "walk": 135, "bike": 45, "car_alone": 54, "food_waste_lbs": 24, "lights_left_on": 4},
+        {"date": "2026-06-14", "walk": 140, "bike": 46, "car_alone": 52, "food_waste_lbs": 22, "lights_left_on": 4},
+        {"date": "2026-06-15", "walk": 145, "bike": 47, "car_alone": 50, "food_waste_lbs": 21, "lights_left_on": 3},
     ])
     demo_data.to_csv(data_file, index=False)
 
-# ===== DATA =====
+# ===== SCHOOL DATA =====
 school_data = {
     "trees": 31, "goal_trees": 50, "walk_bike": 40, "goal_walk_bike": 50,
     "recycle": 55, "goal_recycle": 70, "car_alone": 54, "food_waste": 24,
@@ -181,7 +408,7 @@ school_data = {
     }
 }
 
-# Environmental profile
+# ===== ENVIRONMENTAL PROFILE =====
 environmental_profile = {
     "🌳 Tree Canopy": min(100, (school_data["trees"] / school_data["goal_trees"]) * 100),
     "🚶 Active Transport": min(100, (school_data["walk_bike"] / school_data["goal_walk_bike"]) * 100),
@@ -206,7 +433,7 @@ if st.session_state.page == "Dashboard":
     st.markdown('<div class="section-header">📊 Environmental Dashboard</div>', unsafe_allow_html=True)
     
     st.markdown('<div class="profile-box">', unsafe_allow_html=True)
-    st.markdown('<h3 style="text-align: center; margin-bottom: 1rem;">🌿 Environmental Profile</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 style="text-align: center;">🌿 Environmental Profile</h3>', unsafe_allow_html=True)
     hex_fig = create_hexagon_chart(environmental_profile)
     st.plotly_chart(hex_fig, use_container_width=True)
     avg_score = sum(environmental_profile.values()) / len(environmental_profile)
@@ -259,13 +486,18 @@ elif st.session_state.page == "Action Plan":
 # ===== SIMULATOR PAGE =====
 elif st.session_state.page == "Simulator":
     st.markdown('<div class="section-header">🌡️ What If Simulator</div>', unsafe_allow_html=True)
+    
     col1, col2 = st.columns(2)
     with col1:
-        trees = st.slider("🌳 Trees to plant:", 0, 100, 20)
-        st.metric("Temperature Reduction", f"-{trees * 0.3:.1f}°F")
+        st.markdown("#### 🌳 Tree Planting Simulator")
+        trees = st.slider("Number of trees to plant:", 0, 100, 20, step=5)
+        temp_reduction = trees * 0.3
+        st.metric("Temperature Reduction", f"-{temp_reduction:.1f}°F")
     with col2:
-        walk_pct = st.slider("🚶 Increase walk/bike by:", 0, 100, 20)
-        st.metric("Fewer Solo Cars Daily", f"-{int(54 * walk_pct / 100)}")
+        st.markdown("#### 🚶 Walk to School Simulator")
+        walk_pct = st.slider("Increase walk/bike by:", 0, 100, 20, step=5)
+        cars_removed = int(54 * walk_pct / 100)
+        st.metric("Fewer Solo Cars Daily", f"-{cars_removed}")
 
 # ===== COMMUNITY PAGE =====
 elif st.session_state.page == "Community":
@@ -316,6 +548,14 @@ elif st.session_state.page == "Data Entry":
                 new_data.to_csv(data_file, index=False)
             st.success("Data saved!")
             st.balloons()
+    
+    if os.path.exists(data_file):
+        st.markdown("---")
+        st.markdown("### 📊 Data History")
+        history = pd.read_csv(data_file)
+        st.dataframe(history.sort_values("date", ascending=False), use_container_width=True)
+        csv = history.to_csv(index=False)
+        st.download_button("📥 Download All Data as CSV", data=csv, file_name=f"eco_school_data_{datetime.now().strftime('%Y%m%d')}.csv", mime="text/csv")
 
 # ===== FOOTER =====
 st.markdown("""
