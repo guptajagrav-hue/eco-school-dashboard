@@ -64,11 +64,11 @@ st.markdown("""
     border-left: 4px solid #2e8b57;
 }
 
-/* Top Navigation Bar */
-.top-nav {
+/* Navigation buttons container */
+.nav-container {
     display: flex;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.8rem;
     flex-wrap: wrap;
     margin: 1rem 0;
     padding: 0.5rem;
@@ -76,7 +76,9 @@ st.markdown("""
     border-radius: 50px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
-.nav-btn {
+
+/* Individual nav button */
+.nav-button {
     background: transparent;
     border: none;
     padding: 0.6rem 1.2rem;
@@ -87,10 +89,10 @@ st.markdown("""
     transition: all 0.2s;
     color: #4a5568;
 }
-.nav-btn:hover {
+.nav-button:hover {
     background: #e2e8f0;
 }
-.nav-btn-active {
+.nav-button-active {
     background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%);
     color: white;
 }
@@ -127,13 +129,14 @@ st.markdown("""
     margin-top: 2rem;
 }
 
-/* Hexagon container */
-.hexagon-container {
+/* Profile box */
+.profile-box {
     background: white;
     border-radius: 24px;
     padding: 1.5rem;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     text-align: center;
+    margin-bottom: 1rem;
 }
 
 /* School profile header */
@@ -143,6 +146,7 @@ st.markdown("""
     padding: 1.5rem;
     color: white;
     margin-bottom: 1rem;
+    text-align: center;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -151,37 +155,46 @@ st.markdown("""
 if 'page' not in st.session_state:
     st.session_state.page = "Dashboard"
 
-# ===== NAVIGATION BUTTONS (Horizontal - Like Previous Site) =====
-st.markdown("""
-<div style="display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap; margin: 1rem 0;">
-    <button class="nav-btn" onclick="window.location.href='?page=Dashboard'">📊 Dashboard</button>
-    <button class="nav-btn" onclick="window.location.href='?page=Leaderboard'">🏆 Leaderboard</button>
-    <button class="nav-btn" onclick="window.location.href='?page=Action Plan'">📋 Action Plan</button>
-    <button class="nav-btn" onclick="window.location.href='?page=Simulator'">🌡️ Simulator</button>
-    <button class="nav-btn" onclick="window.location.href='?page=Community'">🌱 Community</button>
-    <button class="nav-btn" onclick="window.location.href='?page=Data Entry'">📥 Data Entry</button>
+# ===== FUNCTION TO CHANGE PAGE =====
+def set_page(page_name):
+    st.session_state.page = page_name
+    st.rerun()
+
+# ===== NAVIGATION BUTTONS (WORKING) =====
+st.markdown('<div class="nav-container">', unsafe_allow_html=True)
+
+cols = st.columns(6)
+with cols[0]:
+    if st.button("📊 Dashboard", key="btn_dashboard", use_container_width=True):
+        set_page("Dashboard")
+with cols[1]:
+    if st.button("🏆 Leaderboard", key="btn_leaderboard", use_container_width=True):
+        set_page("Leaderboard")
+with cols[2]:
+    if st.button("📋 Action Plan", key="btn_action", use_container_width=True):
+        set_page("Action Plan")
+with cols[3]:
+    if st.button("🌡️ Simulator", key="btn_simulator", use_container_width=True):
+        set_page("Simulator")
+with cols[4]:
+    if st.button("🌱 Community", key="btn_community", use_container_width=True):
+        set_page("Community")
+with cols[5]:
+    if st.button("📥 Data Entry", key="btn_data", use_container_width=True):
+        set_page("Data Entry")
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ===== SCHOOL PROFILE HEADER =====
+school_name = "Washington Middle School"
+st.markdown(f"""
+<div class="profile-header">
+    <h2>🌱 {school_name}</h2>
+    <p>Environmental Profile · AI-Powered Insights</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Handle navigation via query params
-query_params = st.query_params
-if 'page' in query_params:
-    st.session_state.page = query_params['page']
-
-# Active page display
-page = st.session_state.page
-
-# ===== SCHOOL PROFILE HEADER =====
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    st.markdown(f"""
-    <div class="profile-header" style="text-align: center;">
-        <h2>🌱 {school_name if 'school_name' in dir() else 'Washington Middle School'}</h2>
-        <p>Environmental Profile · AI-Powered Insights</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-# ===== SIDEBAR (Minimal - Only for settings) =====
+# ===== SIDEBAR (Minimal) =====
 with st.sidebar:
     st.markdown("### ⚙️ Settings")
     school_name = st.text_input("School Name:", value="Washington Middle School")
@@ -288,12 +301,15 @@ def create_hexagon_chart(scores, title="Environmental Profile"):
     
     return fig
 
+# ===== PAGE CONTENT =====
+page = st.session_state.page
+
 # ===== DASHBOARD PAGE =====
 if page == "Dashboard":
     st.markdown('<div class="section-header">📊 Environmental Dashboard</div>', unsafe_allow_html=True)
     
-    # Hexagon Chart
-    st.markdown('<div class="hexagon-container">', unsafe_allow_html=True)
+    # Hexagon Chart INSIDE the curved box
+    st.markdown('<div class="profile-box">', unsafe_allow_html=True)
     st.markdown('<h3 style="text-align: center; margin-bottom: 1rem;">🌿 Environmental Profile</h3>', unsafe_allow_html=True)
     
     hex_fig = create_hexagon_chart(environmental_profile, f"{school_name} - 6 Pillars of Sustainability")
