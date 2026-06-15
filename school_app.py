@@ -549,14 +549,55 @@ elif st.session_state.page == "Data Entry":
             st.success("Data saved!")
             st.balloons()
     
+    # Show saved data history
     if os.path.exists(data_file):
         st.markdown("---")
         st.markdown("### 📊 Data History")
         history = pd.read_csv(data_file)
         st.dataframe(history.sort_values("date", ascending=False), use_container_width=True)
+        
+        # Download button
         csv = history.to_csv(index=False)
         st.download_button("📥 Download All Data as CSV", data=csv, file_name=f"eco_school_data_{datetime.now().strftime('%Y%m%d')}.csv", mime="text/csv")
-
+        
+        # ===== LINE GRAPHS =====
+        if len(history) > 1:
+            st.markdown("---")
+            st.markdown("### 📈 Trends Over Time")
+            
+            # Convert date to datetime
+            history['date'] = pd.to_datetime(history['date'])
+            
+            # Walk trend chart
+            st.markdown("#### 🚶 Walk to School Over Time")
+            fig_walk = px.line(history, x='date', y='walk', 
+                               title='Students Walking to School',
+                               labels={'date': 'Date', 'walk': 'Number of Students'},
+                               markers=True)
+            fig_walk.update_layout(hovermode='x unified')
+            st.plotly_chart(fig_walk, use_container_width=True)
+            
+            # Food waste trend chart
+            st.markdown("#### 🍎 Food Waste Over Time")
+            fig_waste = px.line(history, x='date', y='food_waste_lbs', 
+                                title='Pounds of Food Waste per Day',
+                                labels={'date': 'Date', 'food_waste_lbs': 'Pounds'},
+                                markers=True,
+                                color_discrete_sequence=['#f59e0b'])
+            fig_waste.update_layout(hovermode='x unified')
+            st.plotly_chart(fig_waste, use_container_width=True)
+            
+            # Optional: Car alone trend
+            st.markdown("#### 🚗 Solo Cars Over Time")
+            fig_cars = px.line(history, x='date', y='car_alone', 
+                               title='Students Arriving by Car Alone',
+                               labels={'date': 'Date', 'car_alone': 'Number of Students'},
+                               markers=True,
+                               color_discrete_sequence=['#ef4444'])
+            fig_cars.update_layout(hovermode='x unified')
+            st.plotly_chart(fig_cars, use_container_width=True)
+    else:
+        st.info("No data yet. Submit the form above to start tracking!")
 # ===== FOOTER =====
 st.markdown("""
 <div class="footer">
