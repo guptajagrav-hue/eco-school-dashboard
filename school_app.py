@@ -13,7 +13,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ===== DARK MODE STATE - FIXED =====
+# ===== DARK MODE STATE =====
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
 
@@ -28,10 +28,8 @@ def show_ai_explanation():
     | Calculate classroom energy scores | ❌ Hours of math | ✅ Automatic |
     | Find highest-impact actions | ❌ Guesswork | ✅ Data-driven |
     | Compare week over week | ❌ Painful | ✅ Instant charts |
-    | Generate custom action plans | ❌ Generic advice | ✅ Personalized for YOUR school |
 
-    ### 💡 The AI Advantage:
-    Our system analyzes your school's unique data — transportation patterns, waste audits, energy use — and identifies exactly which actions will have the biggest impact.
+    **Bottom line:** A spreadsheet gives you numbers. Eco-School AI gives you **actionable insights**.
     """)
 
 # ===== WINNING FEATURE: SOCIAL SHARING =====
@@ -51,44 +49,45 @@ def add_community_report(school_name, action_taken):
         "date": datetime.now().strftime("%Y-%m-%d")
     })
 
-# ===== CUSTOM CSS - COMPLETELY FIXED =====
+# ===== CUSTOM CSS - SIDEBAR FIXED =====
 def get_css(dark_mode):
     if dark_mode:
         return """
         <style>
-        /* Dark mode - everything visible */
+        /* Dark mode */
         .stApp { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+        [data-testid="stSidebar"] { background: #0f3460; }
         .main-title { font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
         .subtitle { text-align: center; color: #dfe6e9; margin-bottom: 2rem; }
         .section-header { font-size: 1.5rem; font-weight: 700; color: #00b894; margin-top: 2rem; margin-bottom: 1rem; border-left: 4px solid #00b894; padding-left: 1rem; }
         .footer { text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #2d3436; margin-top: 3rem; }
-        .leaderboard-item { padding: 0.75rem; margin: 0.5rem 0; background: #0f3460; border-radius: 12px; color: white; }
-        /* Force all text to be white in dark mode */
-        .stMarkdown, .stText, label, .stMetric label, .stMetric div, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label {
+        .leaderboard-item { padding: 0.75rem; margin: 0.5rem 0; background: #1a1a2e; border-radius: 12px; color: white; }
+        /* All text white in dark mode */
+        .stMarkdown, .stText, label, .stMetric label, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label {
             color: #ffffff !important;
         }
         .stMetric div[data-testid="stMetricValue"] { color: #00b894 !important; font-size: 2rem !important; }
-        .stMetric div[data-testid="stMetricDelta"] { color: #55efc4 !important; }
         .stButton > button { background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); color: #1a1a2e; border-radius: 30px; font-weight: bold; }
         .stButton > button:hover { transform: scale(1.02); cursor: pointer; }
-        div[data-testid="stAlert"] { background-color: #0f3460; color: white; }
-        .stWarning { background-color: #2d1a1a; color: #ffcccc; }
-        .stInfo { background-color: #0f3460; color: white; }
-        .stSuccess { background-color: #0a4a3a; color: white; }
         </style>
         """
     else:
         return """
         <style>
-        /* Light mode - all text dark */
+        /* Light mode - sidebar and all text dark */
         .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%); }
+        [data-testid="stSidebar"] { background: #ffffff; }
         .main-title { font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
         .subtitle { text-align: center; color: #4a5568; margin-bottom: 2rem; }
         .section-header { font-size: 1.5rem; font-weight: 700; color: #1a202c; margin-top: 2rem; margin-bottom: 1rem; border-left: 4px solid #2e8b57; padding-left: 1rem; }
         .footer { text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #e2e8f0; margin-top: 3rem; }
         .leaderboard-item { padding: 0.75rem; margin: 0.5rem 0; background: #f8faf8; border-radius: 12px; color: #1a202c; }
-        /* Force all text to be dark in light mode */
-        .stMarkdown, .stText, label, .stMetric label, .stMetric div, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label {
+        /* All text dark in light mode - FIXED SIDEBAR */
+        .stMarkdown, .stText, label, .stMetric label, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label {
+            color: #1a202c !important;
+        }
+        /* Sidebar specific fix */
+        [data-testid="stSidebar"] .stMarkdown, [data-testid="stSidebar"] .stText, [data-testid="stSidebar"] label {
             color: #1a202c !important;
         }
         .stMetric div[data-testid="stMetricValue"] { color: #2e8b57 !important; font-size: 2rem !important; }
@@ -108,7 +107,6 @@ with col_title:
     st.markdown('<div class="main-title">🌱 Eco-School Dashboard</div>', unsafe_allow_html=True)
     st.markdown('<div class="subtitle">Track your school\'s environmental impact · AI-powered insights</div>', unsafe_allow_html=True)
 with col_toggle:
-    # FIXED: Direct toggle without extra logic
     dark_mode_toggle = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode)
     if dark_mode_toggle != st.session_state.dark_mode:
         st.session_state.dark_mode = dark_mode_toggle
@@ -116,7 +114,7 @@ with col_toggle:
 
 # ===== SIDEBAR =====
 with st.sidebar:
-    st.markdown("### 🏫 Your School")
+    st.markdown("## 🏫 Your School")
     school_name = st.text_input("School Name:", value="Washington Middle School")
     
     st.markdown("---")
@@ -124,9 +122,9 @@ with st.sidebar:
         show_ai_explanation()
     
     st.markdown("---")
-    st.markdown("### 📍 Choose Your View")
+    st.markdown("### 📍 Navigate")
     view = st.radio(
-        "Navigate:",
+        "",
         ["📊 Dashboard", "🏆 Leaderboard", "📋 Action Plan", "🌡️ Simulator", "🌱 Community", "📥 Data Entry"]
     )
     st.markdown("---")
@@ -227,13 +225,13 @@ elif view == "📋 Action Plan":
     st.markdown('<div class="section-header">📋 Custom Action Plan</div>', unsafe_allow_html=True)
     
     st.markdown("### 🔴 1. Reduce Solo Car Drop-offs")
-    st.markdown(f"**{school_data['car_alone_count']} cars arrive alone daily → Start a 'Walk & Roll Wednesday' program → Save {school_data['co2_saved_carpool']} lbs CO2/week**")
+    st.markdown(f"**{school_data['car_alone_count']} cars arrive alone daily** → Start a 'Walk & Roll Wednesday' program → **Save {school_data['co2_saved_carpool']} lbs CO2/week**")
     
     st.markdown("### 🟠 2. Stop Wasting Food")
-    st.markdown(f"**{school_data['wasted_food_lbs']} lbs of edible food wasted daily → Start a 'Share Table' → Divert {school_data['wasted_food_lbs'] * 180:,} lbs/year to hungry people**")
+    st.markdown(f"**{school_data['wasted_food_lbs']} lbs of edible food wasted daily** → Start a 'Share Table' → **Divert {school_data['wasted_food_lbs'] * 180:,} lbs/year to hungry people**")
     
     st.markdown("### 🟡 3. Turn Off Lights")
-    st.markdown(f"**{school_data['lights_left_on']} classrooms leave lights on → Assign daily 'Energy Monitors' → Save $50/month**")
+    st.markdown(f"**{school_data['lights_left_on']} classrooms leave lights on** → Assign daily 'Energy Monitors' → **Save $50/month on electricity**")
 
 # ===== SIMULATOR VIEW =====
 elif view == "🌡️ Simulator":
@@ -260,6 +258,7 @@ elif view == "🌱 Community":
         st.balloons()
     
     if st.session_state.community_reports:
+        st.markdown("**Recent actions from schools like yours:**")
         for r in st.session_state.community_reports[-5:]:
             st.caption(f"📍 {r['school']} · {r['action']} · {r['date']}")
 
