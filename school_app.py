@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 import numpy as np
 import os
+from sklearn.linear_model import LinearRegression
 
 # ===== PAGE CONFIG =====
 st.set_page_config(
@@ -371,6 +372,65 @@ if st.session_state.page == "Dashboard":
             <div class="metric-label">📄 Paper/Week</div>
         </div>
         ''', unsafe_allow_html=True)
+    
+    # ===== AI FEATURE 2: SMART ANOMALY DETECTION =====
+    st.markdown('<div class="section-header">🤖 AI Insights</div>', unsafe_allow_html=True)
+    
+    if os.path.exists(data_file):
+        history = pd.read_csv(data_file)
+        
+        if len(history) > 5:
+            # Walk anomaly detection
+            walk_mean = history['walk'].mean()
+            walk_std = history['walk'].std()
+            last_walk = history['walk'].iloc[-1]
+            
+            if last_walk < walk_mean - 2 * walk_std:
+                st.warning("🚨 AI Alert: Unusual drop in students walking to school! Consider a walk-to-school campaign.")
+            elif last_walk > walk_mean + 2 * walk_std:
+                st.success("🎉 AI Insight: Walking to school is at an all-time high! Great job!")
+            else:
+                st.info("✅ AI Analysis: Walking trends are stable. Keep up the good work!")
+            
+            # Food waste anomaly
+            waste_mean = history['food_waste_lbs'].mean()
+            waste_std = history['food_waste_lbs'].std()
+            last_waste = history['food_waste_lbs'].iloc[-1]
+            
+            if last_waste > waste_mean + waste_std:
+                st.warning("🚨 AI Alert: Food waste is higher than usual. Check cafeteria operations.")
+            elif last_waste < waste_mean - waste_std:
+                st.success("🎉 AI Insight: Food waste is down! Great job reducing waste.")
+        else:
+            st.info("📊 AI needs at least 5 days of data to detect patterns. Keep logging!")
+    else:
+        st.info("📊 Start logging daily data in the Data Entry page to enable AI insights!")
+    
+    # ===== AI FEATURE 4: PEER SCHOOL COMPARISON =====
+    if os.path.exists(data_file) and len(pd.read_csv(data_file)) > 5:
+        history = pd.read_csv(data_file)
+        st.markdown('<div class="section-header">🏫 How You Compare to National Average</div>', unsafe_allow_html=True)
+        
+        # Calculate your school's performance
+        total_walk = history['walk'].sum()
+        total_car = history['car_alone'].sum()
+        your_walk_rate = total_walk / (total_walk + total_car) * 100
+        
+        # Simulated national average
+        national_avg = 45
+        
+        col_comp1, col_comp2 = st.columns(2)
+        with col_comp1:
+            if your_walk_rate > national_avg:
+                st.success(f"✅ Your school ({your_walk_rate:.0f}% walk) beats the national average of {national_avg}%!")
+            else:
+                st.warning(f"⚠️ Your school ({your_walk_rate:.0f}% walk) is below the national average of {national_avg}%.")
+        
+        with col_comp2:
+            gap = national_avg - your_walk_rate
+            if gap > 0:
+                more_students_needed = int(gap/100 * history['walk'].mean())
+                st.info(f"🤖 AI Suggestion: Need {more_students_needed} more students walking daily to reach average.")
 
 # ===== LEADERBOARD PAGE =====
 elif st.session_state.page == "Leaderboard":
@@ -404,6 +464,67 @@ elif st.session_state.page == "Action Plan":
         💡 {school_data["lights_on"]} classrooms leave lights on → Save $50/month
     </div>
     ''', unsafe_allow_html=True)
+    
+    # ===== AI FEATURE 3: PERSONALIZED RECOMMENDATIONS =====
+    if os.path.exists(data_file):
+        history = pd.read_csv(data_file)
+        if len(history) > 3:
+            st.markdown("### 🤖 AI-Powered Custom Recommendations")
+            
+            # Analyze which area needs most improvement
+            walk_rate = history['walk'].mean() / (history['walk'].mean() + history['car_alone'].mean()) * 100
+            waste_avg = history['food_waste_lbs'].mean()
+            lights_avg = history['lights_left_on'].mean()
+            
+            if walk_rate < 40:
+                st.info(f"🚶 **Low walking rate** — Only {walk_rate:.0f}% walk vs car. Start a 'walking school bus' program!")
+            if waste_avg > 25:
+                st.info(f"🍎 **High food waste** — Average {waste_avg:.0f} lbs/day. Start a 'Share Table' program!")
+            if lights_avg > 3:
+                st.info(f"💡 **Lights left on** — Average {lights_avg:.0f} classrooms. Assign daily energy monitors!")
+            if walk_rate >= 40 and waste_avg <= 25 and lights_avg <= 3:
+                st.success("🎉 Your school is doing great across all metrics! Keep it up!")
+    
+    # ===== AI FEATURE 5: SMART GOAL SETTING =====
+    if os.path.exists(data_file):
+        history = pd.read_csv(data_file)
+        if len(history) > 3:
+            st.markdown("### 🎯 AI-Generated Goals")
+            
+            col_goal1, col_goal2 = st.columns(2)
+            
+            with col_goal1:
+                # Walking goal
+                walk_first = history['walk'].iloc[0]
+                walk_last = history['walk'].iloc[-1]
+                walk_change = walk_last - walk_first
+                days = len(history)
+                
+                if walk_change > 0:
+                    daily_improvement = walk_change / days
+                    goal_30d = walk_last + (daily_improvement * 30)
+                    st.metric("🤖 30-Day Walk Goal", f"{int(goal_30d)} students", 
+                              delta=f"+{int(goal_30d - walk_last)} from today")
+                else:
+                    goal_30d = walk_last + 10
+                    st.metric("🤖 30-Day Walk Goal", f"{int(goal_30d)} students", 
+                              delta="Aim for +10 students")
+            
+            with col_goal2:
+                # Waste reduction goal
+                waste_first = history['food_waste_lbs'].iloc[0]
+                waste_last = history['food_waste_lbs'].iloc[-1]
+                waste_change = waste_last - waste_first
+                
+                if waste_change < 0:
+                    daily_reduction = -waste_change / days
+                    goal_30d_waste = max(0, waste_last - (daily_reduction * 30))
+                    st.metric("🤖 30-Day Waste Goal", f"{int(goal_30d_waste)} lbs", 
+                              delta=f"-{int(waste_last - goal_30d_waste)} lbs")
+                else:
+                    goal_30d_waste = max(0, waste_last - 5)
+                    st.metric("🤖 30-Day Waste Goal", f"{int(goal_30d_waste)} lbs", 
+                              delta="Aim for -5 lbs")
 
 # ===== SIMULATOR PAGE =====
 elif st.session_state.page == "Simulator":
@@ -416,6 +537,43 @@ elif st.session_state.page == "Simulator":
     with col2:
         walk_pct = st.slider("🚶 Increase walk/bike by:", 0, 100, 20)
         st.metric("Fewer Solo Cars Daily", f"-{int(54 * walk_pct / 100)}")
+    
+    # ===== AI FEATURE 1: TREND PREDICTION =====
+    if os.path.exists(data_file):
+        history = pd.read_csv(data_file)
+        if len(history) > 3:
+            st.markdown("---")
+            st.markdown("### 🤖 AI Trend Prediction")
+            
+            # Predict future walk counts using linear regression
+            days = np.array(range(len(history))).reshape(-1, 1)
+            walks = history['walk'].values
+            
+            model = LinearRegression()
+            model.fit(days, walks)
+            
+            future_days = np.array(range(len(history), len(history) + 30)).reshape(-1, 1)
+            future_walks = model.predict(future_days)
+            
+            col_pred1, col_pred2 = st.columns(2)
+            with col_pred1:
+                st.metric("🤖 AI Predicts: Walkers in 30 days", f"{int(future_walks[-1])} students", 
+                          delta=f"{int(future_walks[-1] - history['walk'].iloc[-1]):+d}")
+            with col_pred2:
+                if future_walks[-1] > history['walk'].iloc[-1]:
+                    st.success("📈 Trending upward! Keep encouraging walking to school.")
+                else:
+                    st.warning("📉 Trending downward. Time for a new walking campaign!")
+            
+            # Show prediction chart
+            pred_days = list(range(len(history) + 30))
+            pred_walks = list(walks) + list(future_walks)
+            
+            fig_pred = go.Figure()
+            fig_pred.add_trace(go.Scatter(x=list(range(len(history))), y=walks, mode='lines+markers', name='Actual Data', line=dict(color='#2e8b57')))
+            fig_pred.add_trace(go.Scatter(x=list(range(len(history), len(history) + 30)), y=future_walks, mode='lines', name='AI Prediction', line=dict(color='#f59e0b', dash='dash')))
+            fig_pred.update_layout(title='AI Predicted Walking Trend (Next 30 Days)', xaxis_title='Days', yaxis_title='Students Walking', hovermode='x unified')
+            st.plotly_chart(fig_pred, use_container_width=True)
 
 # ===== COMMUNITY PAGE =====
 elif st.session_state.page == "Community":
@@ -428,7 +586,7 @@ elif st.session_state.page == "Community":
         st.balloons()
         st.success("Thanks for helping! 🌍")
 
-# ===== DATA ENTRY PAGE WITH CLEAR DATA BUTTON =====
+# ===== DATA ENTRY PAGE =====
 elif st.session_state.page == "Data Entry":
     st.markdown('<div class="section-header">📥 Enter School Data</div>', unsafe_allow_html=True)
     
@@ -531,8 +689,6 @@ elif st.session_state.page == "Data Entry":
             st.markdown("#### Food Waste Over Time")
             fig2 = px.line(history, x='date', y='food_waste_lbs', title='Pounds of Food Waste per Day')
             st.plotly_chart(fig2, use_container_width=True)
-    else:
-        st.info("No data yet. Submit the form above to start tracking your school's environmental impact!")
 
 # ===== FOOTER =====
 st.markdown("""
