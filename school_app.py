@@ -483,21 +483,117 @@ elif st.session_state.page == "Action Plan":
     st.markdown(f'<div style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #f59e0b; background: {bg2}; color: {text_color};"><strong>🟠 PRIORITY 2: Stop Wasting Food</strong><br>🍎 {school_data["food_waste"]} lbs wasted daily → Divert {school_data["food_waste"] * 180:,} lbs/year</div>', unsafe_allow_html=True)
     st.markdown(f'<div style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #10b981; background: {bg3}; color: {text_color};"><strong>🟢 PRIORITY 3: Turn Off Lights</strong><br>💡 {school_data["lights_on"]} classrooms leave lights on → Save $50/month</div>', unsafe_allow_html=True)
 
-# ===== SIMULATOR PAGE =====
+# # ===== SIMULATOR PAGE =====
 elif st.session_state.page == "Simulator":
     st.markdown('<div class="section-header">🌡️ What If Simulator</div>', unsafe_allow_html=True)
     
+    # Two main simulators
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("#### 🌳 Tree Planting Simulator")
         trees = st.slider("Number of trees to plant:", 0, 100, 20, step=5)
         temp_reduction = trees * 0.3
+        co2_absorbed = trees * 48
         st.metric("Temperature Reduction", f"-{temp_reduction:.1f}°F")
+        st.caption(f"🌿 Also absorbs {co2_absorbed} lbs CO2 per year")
+    
     with col2:
         st.markdown("#### 🚶 Walk to School Simulator")
         walk_pct = st.slider("Increase walk/bike by:", 0, 100, 20, step=5)
         cars_removed = int(54 * walk_pct / 100)
+        co2_saved = cars_removed * 5
         st.metric("Fewer Solo Cars Daily", f"-{cars_removed}")
+        st.caption(f"🌿 Saves {co2_saved} lbs CO2 per day")
+    
+    st.markdown("---")
+    
+    # ===== AI TREND PREDICTION GRAPH =====
+    st.markdown("### 🤖 AI Trend Prediction")
+    st.caption("Based on your logged data, AI predicts future walking trends")
+    
+    if os.path.exists(data_file):
+        history = pd.read_csv(data_file)
+        if len(history) > 3:
+            from sklearn.linear_model import LinearRegression
+            
+            # Prepare data
+            history['date_num'] = range(len(history))
+            walks = history['walk'].values
+            
+            # Train model
+            model = LinearRegression()
+            model.fit(history[['date_num']], walks)
+            
+            # Predict next 30 days
+            future_days = np.array(range(len(history), len(history) + 30)).reshape(-1, 1)
+            future_walks = model.predict(future_days)
+            
+            # Display prediction metrics
+            col_pred1, col_pred2 = st.columns(2)
+            with col_pred1:
+                current_walkers = int(history['walk'].iloc[-1])
+                predicted_walkers = int(future_walks[-1])
+                change = predicted_walkers - current_walkers
+                st.metric("📊 Current Walkers", current_walkers)
+                st.metric("🤖 Predicted in 30 Days", predicted_walkers, delta=f"{change:+d}")
+            
+            with col_pred2:
+                if future_walks[-1] > history['walk'].iloc[-1]:
+                    st.success("📈 Trending upward! Keep encouraging walking to school.")
+                else:
+                    st.warning("📉 Trending downward. Time for a new walking campaign!")
+            
+            # Create the prediction chart
+            pred_days = list(range(len(history) + 30))
+            pred_walks = list(walks) + list(future_walks)
+            
+            fig_pred = go.Figure()
+            
+            # Actual data (past)
+            fig_pred.add_trace(go.Scatter(
+                x=list(range(len(history))), 
+                y=walks, 
+                mode='lines+markers', 
+                name='Actual Data',
+                line=dict(color='#2e8b57', width=3),
+                marker=dict(size=8, color='#2e8b57')
+            ))
+            
+            # AI Prediction (future)
+            fig_pred.add_trace(go.Scatter(
+                x=list(range(len(history), len(history) + 30)), 
+                y=future_walks, 
+                mode='lines', 
+                name='AI Prediction',
+                line=dict(color='#f59e0b', width=3, dash='dash')
+            ))
+            
+            # Add a vertical line at prediction start
+            fig_pred.add_vline(
+                x=len(history) - 0.5,
+                line_dash="dot",
+                line_color="gray",
+                annotation_text="Today →",
+                annotation_position="top right"
+            )
+            
+            fig_pred.update_layout(
+                title='AI Predicted Walking Trend (Next 30 Days)',
+                xaxis_title='Days',
+                yaxis_title='Students Walking to School',
+                hovermode='x unified',
+                height=450,
+                legend=dict(x=0.5, y=-0.15, orientation='h')
+            )
+            
+            st.plotly_chart(fig_pred, use_container_width=True)
+            
+            # Add insight
+            st.info("💡 **AI Insight:** This prediction uses linear regression on your historical walking data. Add more data points for better accuracy!")
+        else:
+            st.info("📊 Not enough data yet. Add at least 4 days of data in the Data Entry page to see AI predictions!")
+    else:
+        st.info("📊 Start logging daily data in the Data Entry page to enable AI predictions!")
 
 # ===== COMMUNITY PAGE =====
 elif st.session_state.page == "Community":
