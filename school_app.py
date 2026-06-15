@@ -18,10 +18,56 @@ st.set_page_config(
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
 
-# ===== TOGGLE FUNCTION =====
-def toggle_dark_mode():
-    st.session_state.dark_mode = not st.session_state.dark_mode
-    st.rerun()
+# ===== CUSTOM CSS =====
+def get_css(dark_mode):
+    if dark_mode:
+        return """
+        <style>
+        .stApp { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+        .metric-card { background: #0f3460; color: white; border-radius: 20px; padding: 1.2rem; text-align: center; margin-bottom: 1rem; }
+        .metric-value { font-size: 2.2rem; font-weight: 800; color: white; }
+        .metric-label { font-size: 0.85rem; text-transform: uppercase; color: #dfe6e9; }
+        .section-header { font-size: 1.5rem; font-weight: 700; color: #00b894; border-left: 4px solid #00b894; padding-left: 1rem; margin-top: 1.5rem; margin-bottom: 1rem; }
+        .leaderboard-item { background: #0f3460; color: white; padding: 0.8rem; border-radius: 12px; margin: 0.5rem 0; display: flex; justify-content: space-between; }
+        .profile-box { background: #0f3460; border-radius: 24px; padding: 1.5rem; text-align: center; margin-bottom: 1rem; }
+        .stMarkdown, label, .stMetric label { color: #ffffff !important; }
+        .stMetric div[data-testid="stMetricValue"] { color: #00b894 !important; }
+        [data-testid="stSidebar"] { background: #0f3460; }
+        [data-testid="stSidebar"] * { color: white !important; }
+        .stTextInput > div > div > input { background-color: #1a1a2e !important; color: white !important; border: 1px solid #00b894 !important; }
+        .card-green { background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); color: white; }
+        .card-blue { background: linear-gradient(135deg, #1e6f9f 0%, #3b82f6 100%); color: white; }
+        .card-orange { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: white; }
+        .card-red { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; }
+        .card-purple { background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); color: white; }
+        .card-teal { background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); color: white; }
+        </style>
+        """
+    else:
+        return """
+        <style>
+        .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%); }
+        .metric-card { background: white; color: #1a202c; border-radius: 20px; padding: 1.2rem; text-align: center; margin-bottom: 1rem; }
+        .metric-value { font-size: 2.2rem; font-weight: 800; color: #1a202c; }
+        .metric-label { font-size: 0.85rem; text-transform: uppercase; color: #4a5568; }
+        .section-header { font-size: 1.5rem; font-weight: 700; color: #1a202c; border-left: 4px solid #2e8b57; padding-left: 1rem; margin-top: 1.5rem; margin-bottom: 1rem; }
+        .leaderboard-item { background: #f8faf8; color: #1a202c; padding: 0.8rem; border-radius: 12px; margin: 0.5rem 0; display: flex; justify-content: space-between; }
+        .profile-box { background: white; border-radius: 24px; padding: 1.5rem; text-align: center; margin-bottom: 1rem; }
+        .stMarkdown, label, .stMetric label { color: #1a202c !important; }
+        .stMetric div[data-testid="stMetricValue"] { color: #2e8b57 !important; }
+        [data-testid="stSidebar"] { background: #ffffff; }
+        [data-testid="stSidebar"] * { color: #1a202c !important; }
+        .stTextInput > div > div > input { background-color: #ffffff !important; color: #1a202c !important; border: 1px solid #cbd5e1 !important; }
+        .card-green { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; }
+        .card-blue { background: linear-gradient(135deg, #1e6f9f 0%, #3b82f6 100%); color: white; }
+        .card-orange { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: white; }
+        .card-red { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; }
+        .card-purple { background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); color: white; }
+        .card-teal { background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); color: white; }
+        </style>
+        """
+
+st.markdown(get_css(st.session_state.dark_mode), unsafe_allow_html=True)
 
 # ===== HEADER WITH TOGGLE =====
 col_title, col_toggle = st.columns([4, 1])
@@ -29,49 +75,12 @@ with col_title:
     st.markdown('<h1 style="text-align: center; color: #2e8b57; margin: 0;">🌱 Eco-School Dashboard</h1>', unsafe_allow_html=True)
     st.markdown('<p style="text-align: center; color: #4a5568; margin-top: 0;">Track your school\'s environmental impact · AI-powered insights</p>', unsafe_allow_html=True)
 with col_toggle:
-    # SIMPLE TOGGLE - JUST AN EMOJI
+    # SIMPLE TOGGLE - SINGLE BUTTON WITH EMOJI
     if st.button("🌙" if not st.session_state.dark_mode else "☀️", key="dark_toggle"):
         st.session_state.dark_mode = not st.session_state.dark_mode
         st.rerun()
 
-# ===== CUSTOM CSS =====
-if st.session_state.dark_mode:
-    st.markdown("""
-    <style>
-    .stApp { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
-    .metric-card { background: #0f3460; color: white; border-radius: 20px; padding: 1.2rem; text-align: center; margin-bottom: 1rem; }
-    .metric-value { font-size: 2.2rem; font-weight: 800; color: white; }
-    .metric-label { font-size: 0.85rem; text-transform: uppercase; color: #dfe6e9; }
-    .section-header { font-size: 1.5rem; font-weight: 700; color: #00b894; border-left: 4px solid #00b894; padding-left: 1rem; }
-    .leaderboard-item { background: #0f3460; color: white; padding: 0.8rem; border-radius: 12px; margin: 0.5rem 0; display: flex; justify-content: space-between; }
-    .profile-box { background: #0f3460; border-radius: 24px; padding: 1.5rem; text-align: center; }
-    .stMarkdown, label, .stMetric label { color: #ffffff !important; }
-    .stMetric div[data-testid="stMetricValue"] { color: #00b894 !important; }
-    [data-testid="stSidebar"] { background: #0f3460; }
-    [data-testid="stSidebar"] * { color: white !important; }
-    .stTextInput > div > div > input { background-color: #1a1a2e !important; color: white !important; border: 1px solid #00b894 !important; }
-    </style>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-    <style>
-    .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%); }
-    .metric-card { background: white; color: #1a202c; border-radius: 20px; padding: 1.2rem; text-align: center; margin-bottom: 1rem; }
-    .metric-value { font-size: 2.2rem; font-weight: 800; color: #1a202c; }
-    .metric-label { font-size: 0.85rem; text-transform: uppercase; color: #4a5568; }
-    .section-header { font-size: 1.5rem; font-weight: 700; color: #1a202c; border-left: 4px solid #2e8b57; padding-left: 1rem; }
-    .leaderboard-item { background: #f8faf8; color: #1a202c; padding: 0.8rem; border-radius: 12px; margin: 0.5rem 0; display: flex; justify-content: space-between; }
-    .profile-box { background: white; border-radius: 24px; padding: 1.5rem; text-align: center; }
-    .stMarkdown, label, .stMetric label { color: #1a202c !important; }
-    .stMetric div[data-testid="stMetricValue"] { color: #2e8b57 !important; }
-    [data-testid="stSidebar"] { background: #ffffff; }
-    [data-testid="stSidebar"] * { color: #1a202c !important; }
-    .stTextInput > div > div > input { background-color: #ffffff !important; color: #1a202c !important; border: 1px solid #cbd5e1 !important; }
-    </style>
-    """, unsafe_allow_html=True)
-
-# ===== REST OF YOUR APP (SAME AS BEFORE) =====
-# Navigation
+# ===== SESSION STATE FOR NAVIGATION =====
 if 'page' not in st.session_state:
     st.session_state.page = "Dashboard"
 
@@ -79,6 +88,7 @@ def set_page(page_name):
     st.session_state.page = page_name
     st.rerun()
 
+# ===== NAVIGATION BUTTONS =====
 st.markdown('<div style="display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap; margin: 1rem 0; padding: 0.5rem; background: white; border-radius: 50px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">', unsafe_allow_html=True)
 
 cols = st.columns(6)
@@ -103,7 +113,7 @@ with cols[5]:
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# School header
+# ===== SCHOOL PROFILE HEADER =====
 school_name = "Washington Middle School"
 st.markdown(f"""
 <div style="background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); border-radius: 24px; padding: 1.5rem; color: white; margin-bottom: 1rem; text-align: center;">
@@ -112,7 +122,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar
+# ===== SIDEBAR =====
 with st.sidebar:
     st.markdown("### ⚙️ Settings")
     school_name_input = st.text_input("School Name:", value="Washington Middle School")
@@ -127,7 +137,7 @@ with st.sidebar:
         file_size = os.path.getsize(data_file) // 1024
         st.success(f"✅ {file_size} KB of data saved")
 
-# Demo data
+# ===== CREATE DEMO DATA =====
 data_file = "school_data_log.csv"
 if not os.path.exists(data_file):
     demo_data = pd.DataFrame([
@@ -140,14 +150,16 @@ if not os.path.exists(data_file):
     ])
     demo_data.to_csv(data_file, index=False)
 
-# School data
+# ===== DATA =====
 school_data = {
     "trees": 31, "goal_trees": 50, "walk_bike": 40, "goal_walk_bike": 50,
     "recycle": 55, "goal_recycle": 70, "car_alone": 54, "food_waste": 24,
     "lights_on": 5, "paper_reams": 12, "bottles": 392, "co2_save": 1200,
     "classrooms": {
-        "Room 101": {"score": 45, "lights": False}, "Room 102": {"score": 95, "lights": True},
-        "Room 103": {"score": 60, "lights": False}, "Room 104": {"score": 80, "lights": True},
+        "Room 101": {"score": 45, "lights": False},
+        "Room 102": {"score": 95, "lights": True},
+        "Room 103": {"score": 60, "lights": False},
+        "Room 104": {"score": 80, "lights": True},
         "Room 105": {"score": 25, "lights": False},
     }
 }
@@ -162,22 +174,23 @@ environmental_profile = {
     "💧 Water Conservation": min(100, (school_data["bottles"] / 500) * 100),
 }
 
-# Hexagon chart function
+# ===== HEXAGON CHART =====
 def create_hexagon_chart(scores, title="Environmental Profile"):
     categories = list(scores.keys())
     values = list(scores.values())
     fig = go.Figure()
     fig.add_trace(go.Scatterpolar(r=values, theta=categories, fill='toself', name='Your School', line_color='#2e8b57', fillcolor='rgba(46, 139, 86, 0.3)'))
     fig.add_trace(go.Scatterpolar(r=[100] * len(categories), theta=categories, name='Goal (100%)', line_color='#cbd5e1', line_dash='dash'))
-    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100]), angularaxis=dict(tickfont=dict(size=12))), height=500, showlegend=True)
+    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100]), angularaxis=dict(tickfont=dict(size=12))), height=500, showlegend=True, legend=dict(x=0.5, y=-0.1, orientation='h'))
     return fig
 
-# Dashboard page
+# ===== DASHBOARD PAGE =====
 if st.session_state.page == "Dashboard":
     st.markdown('<div class="section-header">📊 Environmental Dashboard</div>', unsafe_allow_html=True)
     
+    # Hexagon Chart
     st.markdown('<div class="profile-box">', unsafe_allow_html=True)
-    st.markdown('<h3 style="text-align: center;">🌿 Environmental Profile</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 style="text-align: center; margin-bottom: 1rem;">🌿 Environmental Profile</h3>', unsafe_allow_html=True)
     hex_fig = create_hexagon_chart(environmental_profile)
     st.plotly_chart(hex_fig, use_container_width=True)
     avg_score = sum(environmental_profile.values()) / len(environmental_profile)
@@ -186,45 +199,50 @@ if st.session_state.page == "Dashboard":
     
     st.markdown("---")
     
+    # Metrics Row
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{school_data["trees"]} / {school_data["goal_trees"]}</div><div class="metric-label">🌳 Trees on Campus</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card card-green"><div class="metric-value">{school_data["trees"]}<span style="font-size:1rem;"> / {school_data["goal_trees"]}</span></div><div class="metric-label">🌳 Trees on Campus</div></div>', unsafe_allow_html=True)
     with col2:
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{school_data["walk_bike"]}%</div><div class="metric-label">🚶 Walk/Bike to School</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card card-blue"><div class="metric-value">{school_data["walk_bike"]}<span style="font-size:1rem;">%</span></div><div class="metric-label">🚶 Walk/Bike to School</div></div>', unsafe_allow_html=True)
     with col3:
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{school_data["recycle"]}%</div><div class="metric-label">♻️ Waste Diverted</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card card-purple"><div class="metric-value">{school_data["recycle"]}<span style="font-size:1rem;">%</span></div><div class="metric-label">♻️ Waste Diverted</div></div>', unsafe_allow_html=True)
     with col4:
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{school_data["bottles"]}</div><div class="metric-label">💧 Bottles Saved/Week</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card card-teal"><div class="metric-value">{school_data["bottles"]}</div><div class="metric-label">💧 Bottles Saved/Week</div></div>', unsafe_allow_html=True)
     
+    # Problem Areas
     st.markdown('<div class="section-header">⚠️ Areas Needing Attention</div>', unsafe_allow_html=True)
     col5, col6, col7 = st.columns(3)
     with col5:
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{school_data["car_alone"]}</div><div class="metric-label">🚗 Solo Cars Daily</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card card-red"><div class="metric-value">{school_data["car_alone"]}</div><div class="metric-label">🚗 Solo Cars Daily</div></div>', unsafe_allow_html=True)
     with col6:
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{school_data["food_waste"]} lbs</div><div class="metric-label">🍎 Food Wasted Daily</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card card-orange"><div class="metric-value">{school_data["food_waste"]}<span style="font-size:1rem;"> lbs</span></div><div class="metric-label">🍎 Food Wasted Daily</div></div>', unsafe_allow_html=True)
     with col7:
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{school_data["paper_reams"]} reams</div><div class="metric-label">📄 Paper/Week</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card" style="background: linear-gradient(135deg, #4b5563 0%, #9ca3af 100%); color: white;"><div class="metric-value">{school_data["paper_reams"]}<span style="font-size:1rem;"> reams</span></div><div class="metric-label">📄 Paper/Week</div></div>', unsafe_allow_html=True)
 
-# Leaderboard page
+# ===== LEADERBOARD PAGE =====
 elif st.session_state.page == "Leaderboard":
     st.markdown('<div class="section-header">🏆 Green Classroom Leaderboard</div>', unsafe_allow_html=True)
-    leaderboard = []
-    for room, data in school_data['classrooms'].items():
-        leaderboard.append({"room": room, "score": data['score'], "lights": data['lights']})
-    leaderboard = sorted(leaderboard, key=lambda x: x['score'], reverse=True)
+    leaderboard = sorted([{"room": room, "score": data['score'], "lights": data['lights']} for room, data in school_data['classrooms'].items()], key=lambda x: x['score'], reverse=True)
     for i, item in enumerate(leaderboard):
         medal = "🥇" if i == 0 else "🥈" if i == 1 else "🥉" if i == 2 else f"{i+1}."
-        lights_status = "✅" if item['lights'] else "❌"
-        st.markdown(f'<div class="leaderboard-item"><span>{medal} {item["room"]}</span><span>{item["score"]} pts</span><span>Lights {lights_status}</span></div>', unsafe_allow_html=True)
+        lights_status = "✅ Lights Off" if item['lights'] else "❌ Lights Left On"
+        st.markdown(f'<div class="leaderboard-item"><span><b>{medal}</b></span><span><b>{item["room"]}</b></span><span><b style="color: #2e8b57;">{item["score"]} points</b></span><span>{lights_status}</span></div>', unsafe_allow_html=True)
 
-# Action Plan page
+# ===== ACTION PLAN PAGE =====
 elif st.session_state.page == "Action Plan":
     st.markdown('<div class="section-header">📋 Custom Action Plan</div>', unsafe_allow_html=True)
-    st.markdown(f'<div style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #dc2626; background: {"#2d1a1a" if st.session_state.dark_mode else "#fef2f2"};"><strong>🔴 PRIORITY 1:</strong> Reduce Solo Car Drop-offs<br>🚗 {school_data["car_alone"]} solo cars daily → Save {school_data["co2_save"]} lbs CO2/week</div>', unsafe_allow_html=True)
-    st.markdown(f'<div style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #f59e0b; background: {"#2d2a1a" if st.session_state.dark_mode else "#fffbeb"};"><strong>🟠 PRIORITY 2:</strong> Stop Wasting Food<br>🍎 {school_data["food_waste"]} lbs wasted daily → Divert {school_data["food_waste"] * 180:,} lbs/year</div>', unsafe_allow_html=True)
-    st.markdown(f'<div style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #10b981; background: {"#1a2d1a" if st.session_state.dark_mode else "#ecfdf5"};"><strong>🟢 PRIORITY 3:</strong> Turn Off Lights<br>💡 {school_data["lights_on"]} classrooms leave lights on → Save $50/month</div>', unsafe_allow_html=True)
+    
+    if st.session_state.dark_mode:
+        bg1, bg2, bg3, text_color = "#2d1a1a", "#2d2a1a", "#1a2d1a", "white"
+    else:
+        bg1, bg2, bg3, text_color = "#fef2f2", "#fffbeb", "#ecfdf5", "#1a202c"
+    
+    st.markdown(f'<div style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #dc2626; background: {bg1}; color: {text_color};"><strong>🔴 PRIORITY 1: Reduce Solo Car Drop-offs</strong><br>🚗 {school_data["car_alone"]} solo cars daily → Save {school_data["co2_save"]} lbs CO2/week</div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #f59e0b; background: {bg2}; color: {text_color};"><strong>🟠 PRIORITY 2: Stop Wasting Food</strong><br>🍎 {school_data["food_waste"]} lbs wasted daily → Divert {school_data["food_waste"] * 180:,} lbs/year</div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #10b981; background: {bg3}; color: {text_color};"><strong>🟢 PRIORITY 3: Turn Off Lights</strong><br>💡 {school_data["lights_on"]} classrooms leave lights on → Save $50/month</div>', unsafe_allow_html=True)
 
-# Simulator page
+# ===== SIMULATOR PAGE =====
 elif st.session_state.page == "Simulator":
     st.markdown('<div class="section-header">🌡️ What If Simulator</div>', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
@@ -235,7 +253,7 @@ elif st.session_state.page == "Simulator":
         walk_pct = st.slider("🚶 Increase walk/bike by:", 0, 100, 20)
         st.metric("Fewer Solo Cars Daily", f"-{int(54 * walk_pct / 100)}")
 
-# Community page
+# ===== COMMUNITY PAGE =====
 elif st.session_state.page == "Community":
     st.markdown('<div class="section-header">🌱 Community Action Tracker</div>', unsafe_allow_html=True)
     actions = ["🌳 Planted a tree", "🚗 Started carpooling", "🗑️ Waste audit", "💡 Energy monitors", "💧 Water station"]
@@ -244,9 +262,17 @@ elif st.session_state.page == "Community":
         st.balloons()
         st.success("Thanks for helping! 🌍")
 
-# Data Entry page
+# ===== DATA ENTRY PAGE =====
 elif st.session_state.page == "Data Entry":
     st.markdown('<div class="section-header">📥 Enter School Data</div>', unsafe_allow_html=True)
+    
+    col_clear1, col_clear2 = st.columns([4, 1])
+    with col_clear2:
+        if st.button("🗑️ Clear All Data", type="secondary", use_container_width=True):
+            if os.path.exists(data_file):
+                os.remove(data_file)
+                st.success("All data cleared!")
+                st.rerun()
     
     with st.form("data_form"):
         st.markdown("### 🚗 Transportation")
@@ -274,10 +300,10 @@ elif st.session_state.page == "Data Entry":
                 combined.to_csv(data_file, index=False)
             else:
                 new_data.to_csv(data_file, index=False)
-            st.success("✅ Data saved!")
+            st.success("Data saved!")
             st.balloons()
 
-# Footer
+# ===== FOOTER =====
 st.markdown("""
 <div style="text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #e2e8f0; margin-top: 2rem;">
     <strong>🌱 Eco-School Dashboard</strong> · AI-powered · Built for USAII Hackathon 2026
