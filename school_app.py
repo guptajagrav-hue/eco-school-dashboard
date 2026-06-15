@@ -18,6 +18,100 @@ st.set_page_config(
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
 
+# ===== ANIMATED TOGGLE CSS =====
+toggle_css = """
+<style>
+/* Animated Dark Mode Toggle Button */
+.dark-mode-toggle {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 70px;
+    height: 36px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 28px;
+    width: 28px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+input:checked + .slider {
+    background: linear-gradient(135deg, #2e8b57, #3cb371);
+}
+
+input:checked + .slider:before {
+    transform: translateX(34px);
+}
+
+/* Sun and Moon icons */
+.slider:after {
+    content: "☀️";
+    position: absolute;
+    right: 8px;
+    top: 6px;
+    font-size: 14px;
+    transition: 0.4s;
+    opacity: 1;
+}
+
+input:checked + .slider:after {
+    content: "🌙";
+    right: auto;
+    left: 8px;
+    opacity: 1;
+}
+
+/* Hover effect */
+.toggle-switch:hover .slider {
+    box-shadow: 0 0 10px rgba(46, 139, 86, 0.5);
+}
+
+/* Pulse animation on toggle */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.toggle-switch:active .slider:before {
+    animation: pulse 0.2s ease;
+}
+</style>
+"""
+
 # ===== CUSTOM CSS WITH DARK MODE SUPPORT =====
 def get_css(dark_mode):
     if dark_mode:
@@ -26,8 +120,8 @@ def get_css(dark_mode):
         /* Dark mode styles */
         .stApp { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
         .main-title { color: #00b894; }
-        .metric-card { background: #0f3460; color: white; }
-        .metric-card:hover { background: #1a1a2e; }
+        .metric-card { background: #0f3460; color: white; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+        .metric-card:hover { transform: translateY(-5px); background: #1a1a2e; }
         .metric-value { color: white; }
         .metric-label { color: #dfe6e9; }
         .metric-sub { color: #a0aec0; }
@@ -35,7 +129,7 @@ def get_css(dark_mode):
         .leaderboard-item { background: #0f3460; color: white; }
         .leaderboard-item b, .leaderboard-item div { color: white !important; }
         .footer { color: #718096; border-top-color: #2d3436; }
-        .profile-box { background: #0f3460; }
+        .profile-box { background: #0f3460; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
         .profile-box h3 { color: white; }
         .profile-box div { color: white; }
         .stMarkdown, .stText, label, .stMetric label, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label {
@@ -43,7 +137,8 @@ def get_css(dark_mode):
         }
         .stMetric div[data-testid="stMetricValue"] { color: #00b894 !important; }
         .stMetric div[data-testid="stMetricDelta"] { color: #55efc4 !important; }
-        .stButton > button { background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); color: #1a1a2e; }
+        .stButton > button { background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); color: #1a1a2e; border-radius: 30px; transition: all 0.2s; }
+        .stButton > button:hover { transform: scale(1.02); }
         .stDataFrame { color: white; }
         div[data-testid="stDataFrame"] table { color: white; }
         div[data-testid="stDataFrame"] th { color: white; background-color: #0f3460; }
@@ -61,9 +156,10 @@ def get_css(dark_mode):
             border-color: #55efc4 !important;
             box-shadow: 0 0 0 2px rgba(0, 184, 148, 0.2) !important;
         }
-        /* Toggle button dark mode */
-        .st-emotion-cache-1y4p8pa {
-            background-color: #00b894 !important;
+        /* Navigation buttons dark mode */
+        .nav-container {
+            background: #0f3460 !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
         }
         </style>
         """
@@ -72,7 +168,8 @@ def get_css(dark_mode):
         <style>
         /* Light mode styles */
         .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%); }
-        .metric-card { background: white; color: #1a202c; }
+        .metric-card { background: white; color: #1a202c; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        .metric-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); }
         .metric-value { color: #1a202c; }
         .metric-label { color: #4a5568; }
         .metric-sub { color: #718096; }
@@ -80,16 +177,17 @@ def get_css(dark_mode):
         .leaderboard-item { background: #f8faf8; color: #1a202c; }
         .leaderboard-item b, .leaderboard-item div { color: #1a202c !important; }
         .footer { color: #718096; border-top-color: #e2e8f0; }
-        .profile-box { background: white; }
+        .profile-box { background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
         .profile-box h3 { color: #1a202c; }
         .stMarkdown, .stText, label, .stMetric label, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label {
             color: #1a202c !important;
         }
         .stMetric div[data-testid="stMetricValue"] { color: #2e8b57 !important; }
-        .stButton > button { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; }
+        .stButton > button { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; border-radius: 30px; transition: all 0.2s; }
+        .stButton > button:hover { transform: scale(1.02); }
         [data-testid="stSidebar"] { background: #ffffff; }
         [data-testid="stSidebar"] * { color: #1a202c !important; }
-        /* School name input box light mode - FIXED VISIBILITY */
+        /* School name input box light mode */
         .stTextInput > div > div > input {
             background-color: #ffffff !important;
             color: #1a202c !important;
@@ -103,22 +201,52 @@ def get_css(dark_mode):
         .stTextInput > div > div > input::placeholder {
             color: #a0aec0 !important;
         }
+        /* Navigation buttons light mode */
+        .nav-container {
+            background: white !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+        }
         </style>
         """
 
-# Apply CSS based on dark mode state
+# Apply CSS
+st.markdown(toggle_css, unsafe_allow_html=True)
 st.markdown(get_css(st.session_state.dark_mode), unsafe_allow_html=True)
 
-# ===== DARK MODE TOGGLE IN HEADER =====
+# ===== HEADER WITH ANIMATED DARK MODE TOGGLE =====
 col_title, col_toggle = st.columns([4, 1])
 with col_title:
-    st.markdown('<h1 style="text-align: center; color: #2e8b57;">🌱 Eco-School Dashboard</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="text-align: center; color: #4a5568;">Track your school\'s environmental impact · AI-powered insights</p>', unsafe_allow_html=True)
+    st.markdown('<h1 style="text-align: center; color: #2e8b57; margin: 0;">🌱 Eco-School Dashboard</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align: center; color: #4a5568; margin-top: 0;">Track your school\'s environmental impact · AI-powered insights</p>', unsafe_allow_html=True)
 with col_toggle:
-    new_dark_mode = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode)
-    if new_dark_mode != st.session_state.dark_mode:
-        st.session_state.dark_mode = new_dark_mode
-        st.rerun()
+    # Animated toggle button
+    toggle_html = f'''
+    <div class="dark-mode-toggle">
+        <label class="toggle-switch">
+            <input type="checkbox" id="darkModeToggle" {'checked' if st.session_state.dark_mode else ''}>
+            <span class="slider"></span>
+        </label>
+    </div>
+    <script>
+        const toggle = document.getElementById('darkModeToggle');
+        toggle.addEventListener('change', function() {{
+            const url = new URL(window.location.href);
+            if (this.checked) {{
+                url.searchParams.set('dark_mode', 'true');
+            }} else {{
+                url.searchParams.delete('dark_mode');
+            }}
+            window.location.href = url;
+        }});
+    </script>
+    '''
+    st.components.v1.html(toggle_html, height=50)
+
+# Check URL params for dark mode
+query_params = st.query_params
+if 'dark_mode' in query_params:
+    st.session_state.dark_mode = True
+    st.rerun()
 
 # ===== SESSION STATE FOR NAVIGATION =====
 if 'page' not in st.session_state:
@@ -130,7 +258,7 @@ def set_page(page_name):
     st.rerun()
 
 # ===== NAVIGATION BUTTONS =====
-st.markdown('<div style="display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap; margin: 1rem 0; padding: 0.5rem; background: white; border-radius: 50px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">', unsafe_allow_html=True)
+st.markdown('<div class="nav-container" style="display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap; margin: 1rem 0; padding: 0.5rem; border-radius: 50px;">', unsafe_allow_html=True)
 
 cols = st.columns(6)
 with cols[0]:
@@ -439,7 +567,7 @@ elif st.session_state.page == "Leaderboard":
     for i, item in enumerate(leaderboard):
         medal = "🥇" if i == 0 else "🥈" if i == 1 else "🥉" if i == 2 else f"{i+1}."
         lights_status = "✅ Lights Off" if item['lights'] else "❌ Lights Left On"
-        bg_color = "#1a1a2e" if st.session_state.dark_mode else "#f8faf8"
+        bg_color = "#0f3460" if st.session_state.dark_mode else "#f8faf8"
         st.markdown(f'''
         <div style="padding: 0.8rem 1rem; margin: 0.5rem 0; border-radius: 12px; background: {bg_color}; display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; justify-content: space-between; width: 100%;">
