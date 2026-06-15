@@ -23,18 +23,26 @@ def get_css(dark_mode):
     if dark_mode:
         return """
         <style>
+        /* Dark mode styles */
         .stApp { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
-        .metric-card { background: #0f3460; color: white; border-radius: 20px; padding: 1.2rem; text-align: center; margin-bottom: 1rem; }
+        .metric-card { background: #0f3460; color: white; border-radius: 20px; padding: 1.2rem; text-align: center; margin-bottom: 1rem; transition: transform 0.2s; }
+        .metric-card:hover { transform: translateY(-5px); }
         .metric-value { font-size: 2.2rem; font-weight: 800; color: white; }
-        .metric-label { font-size: 0.85rem; text-transform: uppercase; color: #dfe6e9; }
-        .section-header { font-size: 1.5rem; font-weight: 700; color: #00b894; border-left: 4px solid #00b894; padding-left: 1rem; margin-top: 1.5rem; margin-bottom: 1rem; }
-        .leaderboard-item { background: #0f3460; color: white; padding: 0.8rem; border-radius: 12px; margin: 0.5rem 0; display: flex; justify-content: space-between; }
+        .metric-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #dfe6e9; }
+        .section-header { font-size: 1.5rem; font-weight: 700; color: #00b894; margin-top: 1.5rem; margin-bottom: 1rem; border-left: 4px solid #00b894; padding-left: 1rem; }
+        .leaderboard-item { background: #0f3460; color: white; padding: 0.8rem 1rem; border-radius: 12px; margin: 0.5rem 0; display: flex; justify-content: space-between; align-items: center; }
         .profile-box { background: #0f3460; border-radius: 24px; padding: 1.5rem; text-align: center; margin-bottom: 1rem; }
-        .stMarkdown, label, .stMetric label { color: #ffffff !important; }
+        .footer { text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #2d3436; margin-top: 2rem; }
+        .stMarkdown, .stText, label, .stMetric label, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label { color: #ffffff !important; }
         .stMetric div[data-testid="stMetricValue"] { color: #00b894 !important; }
+        .stButton > button { background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); color: #1a1a2e; border-radius: 30px; transition: all 0.2s; }
+        .stButton > button:hover { transform: scale(1.02); }
+        /* Sidebar dark mode */
         [data-testid="stSidebar"] { background: #0f3460; }
         [data-testid="stSidebar"] * { color: white !important; }
-        .stTextInput > div > div > input { background-color: #1a1a2e !important; color: white !important; border: 1px solid #00b894 !important; }
+        [data-testid="stSidebar"] .stTextInput > div > div > input { background-color: #1a1a2e !important; color: white !important; border: 1px solid #00b894 !important; border-radius: 8px !important; }
+        [data-testid="stSidebar"] .stSelectbox > div > div { background-color: #1a1a2e !important; color: white !important; }
+        /* Card colors */
         .card-green { background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); color: white; }
         .card-blue { background: linear-gradient(135deg, #1e6f9f 0%, #3b82f6 100%); color: white; }
         .card-orange { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: white; }
@@ -46,18 +54,27 @@ def get_css(dark_mode):
     else:
         return """
         <style>
+        /* Light mode styles */
         .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%); }
-        .metric-card { background: white; color: #1a202c; border-radius: 20px; padding: 1.2rem; text-align: center; margin-bottom: 1rem; }
+        .metric-card { background: white; color: #1a202c; border-radius: 20px; padding: 1.2rem; text-align: center; margin-bottom: 1rem; transition: transform 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .metric-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .metric-value { font-size: 2.2rem; font-weight: 800; color: #1a202c; }
-        .metric-label { font-size: 0.85rem; text-transform: uppercase; color: #4a5568; }
-        .section-header { font-size: 1.5rem; font-weight: 700; color: #1a202c; border-left: 4px solid #2e8b57; padding-left: 1rem; margin-top: 1.5rem; margin-bottom: 1rem; }
-        .leaderboard-item { background: #f8faf8; color: #1a202c; padding: 0.8rem; border-radius: 12px; margin: 0.5rem 0; display: flex; justify-content: space-between; }
-        .profile-box { background: white; border-radius: 24px; padding: 1.5rem; text-align: center; margin-bottom: 1rem; }
-        .stMarkdown, label, .stMetric label { color: #1a202c !important; }
+        .metric-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #4a5568; }
+        .section-header { font-size: 1.5rem; font-weight: 700; color: #1a202c; margin-top: 1.5rem; margin-bottom: 1rem; border-left: 4px solid #2e8b57; padding-left: 1rem; }
+        .leaderboard-item { background: #f8faf8; color: #1a202c; padding: 0.8rem 1rem; border-radius: 12px; margin: 0.5rem 0; display: flex; justify-content: space-between; align-items: center; }
+        .profile-box { background: white; border-radius: 24px; padding: 1.5rem; text-align: center; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .footer { text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #e2e8f0; margin-top: 2rem; }
+        .stMarkdown, .stText, label, .stMetric label, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label { color: #1a202c !important; }
         .stMetric div[data-testid="stMetricValue"] { color: #2e8b57 !important; }
+        .stButton > button { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; border-radius: 30px; transition: all 0.2s; }
+        .stButton > button:hover { transform: scale(1.02); }
+        /* Sidebar light mode - FIXED: white background, dark text */
         [data-testid="stSidebar"] { background: #ffffff; }
         [data-testid="stSidebar"] * { color: #1a202c !important; }
-        .stTextInput > div > div > input { background-color: #ffffff !important; color: #1a202c !important; border: 1px solid #cbd5e1 !important; }
+        [data-testid="stSidebar"] .stTextInput > div > div > input { background-color: #ffffff !important; color: #1a202c !important; border: 1px solid #cbd5e1 !important; border-radius: 8px !important; }
+        [data-testid="stSidebar"] .stSelectbox > div > div { background-color: #ffffff !important; color: #1a202c !important; border: 1px solid #cbd5e1 !important; }
+        [data-testid="stSidebar"] .stSuccess { background-color: #e6f7e6 !important; color: #2e8b57 !important; }
+        /* Card colors */
         .card-green { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; }
         .card-blue { background: linear-gradient(135deg, #1e6f9f 0%, #3b82f6 100%); color: white; }
         .card-orange { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: white; }
@@ -75,7 +92,7 @@ with col_title:
     st.markdown('<h1 style="text-align: center; color: #2e8b57; margin: 0;">🌱 Eco-School Dashboard</h1>', unsafe_allow_html=True)
     st.markdown('<p style="text-align: center; color: #4a5568; margin-top: 0;">Track your school\'s environmental impact · AI-powered insights</p>', unsafe_allow_html=True)
 with col_toggle:
-    # SIMPLE TOGGLE - SINGLE BUTTON WITH EMOJI
+    # Simple working toggle
     if st.button("🌙" if not st.session_state.dark_mode else "☀️", key="dark_toggle"):
         st.session_state.dark_mode = not st.session_state.dark_mode
         st.rerun()
@@ -188,7 +205,6 @@ def create_hexagon_chart(scores, title="Environmental Profile"):
 if st.session_state.page == "Dashboard":
     st.markdown('<div class="section-header">📊 Environmental Dashboard</div>', unsafe_allow_html=True)
     
-    # Hexagon Chart
     st.markdown('<div class="profile-box">', unsafe_allow_html=True)
     st.markdown('<h3 style="text-align: center; margin-bottom: 1rem;">🌿 Environmental Profile</h3>', unsafe_allow_html=True)
     hex_fig = create_hexagon_chart(environmental_profile)
@@ -199,7 +215,6 @@ if st.session_state.page == "Dashboard":
     
     st.markdown("---")
     
-    # Metrics Row
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown(f'<div class="metric-card card-green"><div class="metric-value">{school_data["trees"]}<span style="font-size:1rem;"> / {school_data["goal_trees"]}</span></div><div class="metric-label">🌳 Trees on Campus</div></div>', unsafe_allow_html=True)
@@ -210,7 +225,6 @@ if st.session_state.page == "Dashboard":
     with col4:
         st.markdown(f'<div class="metric-card card-teal"><div class="metric-value">{school_data["bottles"]}</div><div class="metric-label">💧 Bottles Saved/Week</div></div>', unsafe_allow_html=True)
     
-    # Problem Areas
     st.markdown('<div class="section-header">⚠️ Areas Needing Attention</div>', unsafe_allow_html=True)
     col5, col6, col7 = st.columns(3)
     with col5:
@@ -305,7 +319,7 @@ elif st.session_state.page == "Data Entry":
 
 # ===== FOOTER =====
 st.markdown("""
-<div style="text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #e2e8f0; margin-top: 2rem;">
+<div class="footer">
     <strong>🌱 Eco-School Dashboard</strong> · AI-powered · Built for USAII Hackathon 2026
 </div>
 """, unsafe_allow_html=True)
