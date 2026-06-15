@@ -14,124 +14,84 @@ st.set_page_config(
     layout="wide"
 )
 
-# ===== CUSTOM CSS =====
-st.markdown("""
-<style>
-/* Card styling */
-.metric-card {
-    background: white;
-    padding: 1.2rem;
-    border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    transition: transform 0.2s, box-shadow 0.2s;
-    margin-bottom: 1rem;
-    text-align: center;
-}
-.metric-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
-}
-.metric-value {
-    font-size: 2.2rem;
-    font-weight: 800;
-    line-height: 1.2;
-}
-.metric-label {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
-    margin-top: 0.5rem;
-}
-.metric-sub {
-    font-size: 0.7rem;
-    margin-top: 0.3rem;
-    opacity: 0.8;
-}
+# ===== DARK MODE STATE =====
+if 'dark_mode' not in st.session_state:
+    st.session_state.dark_mode = False
 
-/* Color themes */
-.card-green { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; }
-.card-blue { background: linear-gradient(135deg, #1e6f9f 0%, #3b82f6 100%); color: white; }
-.card-orange { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: white; }
-.card-red { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; }
-.card-purple { background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); color: white; }
-.card-teal { background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); color: white; }
+# ===== CUSTOM CSS WITH DARK MODE SUPPORT =====
+def get_css(dark_mode):
+    if dark_mode:
+        return """
+        <style>
+        /* Dark mode styles */
+        .stApp { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+        .main-title { color: #00b894; }
+        .metric-card { background: #0f3460; color: white; }
+        .metric-card:hover { background: #1a1a2e; }
+        .metric-value { color: white; }
+        .metric-label { color: #dfe6e9; }
+        .metric-sub { color: #a0aec0; }
+        .section-header { color: #00b894; border-left-color: #00b894; }
+        .leaderboard-item { background: #0f3460; color: white; }
+        .leaderboard-item b, .leaderboard-item div { color: white !important; }
+        .action-item { color: #1a202c; }
+        .action-priority-1, .action-priority-2, .action-priority-3 { color: #1a202c; }
+        .footer { color: #718096; border-top-color: #2d3436; }
+        .profile-box { background: #0f3460; }
+        .profile-box h3 { color: white; }
+        .profile-box div { color: white; }
+        .stMarkdown, .stText, label, .stMetric label, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label {
+            color: #ffffff !important;
+        }
+        .stMetric div[data-testid="stMetricValue"] { color: #00b894 !important; }
+        .stMetric div[data-testid="stMetricDelta"] { color: #55efc4 !important; }
+        .stButton > button { background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); color: #1a1a2e; }
+        .stDataFrame { color: white; }
+        div[data-testid="stDataFrame"] table { color: white; }
+        div[data-testid="stDataFrame"] th { color: white; background-color: #0f3460; }
+        div[data-testid="stDataFrame"] td { color: white; }
+        [data-testid="stSidebar"] { background: #0f3460; }
+        [data-testid="stSidebar"] * { color: white !important; }
+        </style>
+        """
+    else:
+        return """
+        <style>
+        /* Light mode styles */
+        .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%); }
+        .metric-card { background: white; color: #1a202c; }
+        .metric-value { color: #1a202c; }
+        .metric-label { color: #4a5568; }
+        .metric-sub { color: #718096; }
+        .section-header { color: #1a202c; border-left-color: #2e8b57; }
+        .leaderboard-item { background: #f8faf8; color: #1a202c; }
+        .leaderboard-item b, .leaderboard-item div { color: #1a202c !important; }
+        .footer { color: #718096; border-top-color: #e2e8f0; }
+        .profile-box { background: white; }
+        .profile-box h3 { color: #1a202c; }
+        .stMarkdown, .stText, label, .stMetric label, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label {
+            color: #1a202c !important;
+        }
+        .stMetric div[data-testid="stMetricValue"] { color: #2e8b57 !important; }
+        .stButton > button { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; }
+        [data-testid="stSidebar"] { background: #ffffff; }
+        [data-testid="stSidebar"] * { color: #1a202c !important; }
+        </style>
+        """
 
-/* Section headers */
-.section-header {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 1.5rem 0 1rem 0;
-    padding-left: 0.8rem;
-    border-left: 4px solid #2e8b57;
-}
+# Apply CSS based on dark mode state
+st.markdown(get_css(st.session_state.dark_mode), unsafe_allow_html=True)
 
-/* Navigation buttons container */
-.nav-container {
-    display: flex;
-    justify-content: center;
-    gap: 0.8rem;
-    flex-wrap: wrap;
-    margin: 1rem 0;
-    padding: 0.5rem;
-    background: white;
-    border-radius: 50px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-/* Leaderboard items */
-.leaderboard-item {
-    padding: 0.8rem 1rem;
-    margin: 0.5rem 0;
-    border-radius: 12px;
-    background: #f8faf8;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* Action plan items */
-.action-item {
-    padding: 1rem;
-    margin: 1rem 0;
-    border-radius: 16px;
-    border-left: 4px solid;
-}
-.action-priority-1 { background: #fef2f2; border-left-color: #dc2626; }
-.action-priority-2 { background: #fffbeb; border-left-color: #f59e0b; }
-.action-priority-3 { background: #ecfdf5; border-left-color: #10b981; }
-
-/* Footer */
-.footer {
-    text-align: center;
-    padding: 2rem;
-    color: #718096;
-    font-size: 0.8rem;
-    border-top: 1px solid #e2e8f0;
-    margin-top: 2rem;
-}
-
-/* Profile box */
-.profile-box {
-    background: white;
-    border-radius: 24px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    text-align: center;
-    margin-bottom: 1rem;
-}
-
-/* School profile header */
-.profile-header {
-    background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%);
-    border-radius: 24px;
-    padding: 1.5rem;
-    color: white;
-    margin-bottom: 1rem;
-    text-align: center;
-}
-</style>
-""", unsafe_allow_html=True)
+# ===== DARK MODE TOGGLE IN HEADER =====
+col_title, col_toggle = st.columns([4, 1])
+with col_title:
+    st.markdown('<h1 style="text-align: center; color: #2e8b57;">🌱 Eco-School Dashboard</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align: center; color: #4a5568;">Track your school\'s environmental impact · AI-powered insights</p>', unsafe_allow_html=True)
+with col_toggle:
+    new_dark_mode = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode)
+    if new_dark_mode != st.session_state.dark_mode:
+        st.session_state.dark_mode = new_dark_mode
+        st.rerun()
 
 # ===== SESSION STATE FOR NAVIGATION =====
 if 'page' not in st.session_state:
@@ -143,7 +103,7 @@ def set_page(page_name):
     st.rerun()
 
 # ===== NAVIGATION BUTTONS =====
-st.markdown('<div class="nav-container">', unsafe_allow_html=True)
+st.markdown('<div class="nav-container" style="display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap; margin: 1rem 0; padding: 0.5rem; background: white; border-radius: 50px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">', unsafe_allow_html=True)
 
 cols = st.columns(6)
 with cols[0]:
@@ -170,9 +130,9 @@ st.markdown('</div>', unsafe_allow_html=True)
 # ===== SCHOOL PROFILE HEADER =====
 school_name = "Washington Middle School"
 st.markdown(f"""
-<div class="profile-header">
-    <h2>🌱 {school_name}</h2>
-    <p>Environmental Profile · AI-Powered Insights</p>
+<div class="profile-header" style="background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); border-radius: 24px; padding: 1.5rem; color: white; margin-bottom: 1rem; text-align: center;">
+    <h2 style="margin: 0;">🌱 {school_name}</h2>
+    <p style="margin: 0; opacity: 0.9;">Environmental Profile · AI-Powered Insights</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -204,7 +164,6 @@ if not os.path.exists(data_file):
         {"date": "2026-06-15", "walk": 145, "bike": 47, "car_alone": 50, "total_students": 242, "food_waste_lbs": 21, "lights_left_on": 3},
     ])
     demo_data.to_csv(data_file, index=False)
-    st.toast("📊 Demo data loaded! AI features are now active.", icon="✅")
 
 # ===== DATA =====
 school_data = {
@@ -387,14 +346,13 @@ if st.session_state.page == "Dashboard":
         </div>
         ''', unsafe_allow_html=True)
     
-    # ===== AI FEATURE: SMART ANOMALY DETECTION =====
+    # AI Feature: Smart Anomaly Detection
     st.markdown('<div class="section-header">🤖 AI Insights</div>', unsafe_allow_html=True)
     
     if os.path.exists(data_file):
         history = pd.read_csv(data_file)
         
         if len(history) > 3:
-            # Walk anomaly detection
             walk_mean = history['walk'].mean()
             walk_std = history['walk'].std()
             last_walk = history['walk'].iloc[-1]
@@ -406,7 +364,6 @@ if st.session_state.page == "Dashboard":
             else:
                 st.info("✅ AI Analysis: Walking trends are stable. Keep up the good work!")
             
-            # Food waste anomaly
             waste_mean = history['food_waste_lbs'].mean()
             waste_std = history['food_waste_lbs'].std()
             last_waste = history['food_waste_lbs'].iloc[-1]
@@ -417,21 +374,16 @@ if st.session_state.page == "Dashboard":
                 st.success("🎉 AI Insight: Food waste is down! Great job reducing waste.")
         else:
             st.info("📊 AI needs at least 4 days of data to detect patterns. Keep logging!")
-    else:
-        st.info("📊 Start logging daily data in the Data Entry page to enable AI insights!")
     
-    # ===== AI FEATURE: PEER SCHOOL COMPARISON =====
+    # AI Feature: Peer School Comparison
     if os.path.exists(data_file):
         history = pd.read_csv(data_file)
         if len(history) > 3:
             st.markdown('<div class="section-header">🏫 How You Compare to National Average</div>', unsafe_allow_html=True)
             
-            # Calculate your school's performance
             total_walk = history['walk'].sum()
             total_car = history['car_alone'].sum()
             your_walk_rate = total_walk / (total_walk + total_car) * 100 if (total_walk + total_car) > 0 else 0
-            
-            # Simulated national average
             national_avg = 45
             
             col_comp1, col_comp2 = st.columns(2)
@@ -460,34 +412,42 @@ elif st.session_state.page == "Leaderboard":
     for i, item in enumerate(leaderboard):
         medal = "🥇" if i == 0 else "🥈" if i == 1 else "🥉" if i == 2 else f"{i+1}."
         lights_status = "✅ Lights Off" if item['lights'] else "❌ Lights Left On"
-        st.markdown(f'<div class="leaderboard-item"><b>{medal}</b> {item["room"]} — <b>{item["score"]} points</b> | {lights_status}</div>', unsafe_allow_html=True)
+        st.markdown(f'''
+        <div class="leaderboard-item" style="padding: 0.8rem 1rem; margin: 0.5rem 0; border-radius: 12px; background: {"#1a1a2e" if st.session_state.dark_mode else "#f8faf8"}; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+                <span><b>{medal}</b></span>
+                <span><b>{item['room']}</b></span>
+                <span><b style="color: #2e8b57;">{item['score']} points</b></span>
+                <span>{lights_status}</span>
+            </div>
+        </div>
+        ''', unsafe_allow_html=True)
 
 # ===== ACTION PLAN PAGE =====
 elif st.session_state.page == "Action Plan":
     st.markdown('<div class="section-header">📋 Custom Action Plan</div>', unsafe_allow_html=True)
     
     st.markdown(f'''
-    <div class="action-item action-priority-1">
+    <div class="action-item action-priority-1" style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #dc2626; background: {"#2d1a1a" if st.session_state.dark_mode else "#fef2f2"}; color: {"white" if st.session_state.dark_mode else "#1a202c"};">
         <strong>🔴 PRIORITY 1: Reduce Solo Car Drop-offs</strong><br>
         🚗 {school_data["car_alone"]} solo cars daily → Save {school_data["co2_save"]} lbs CO2/week
     </div>
-    <div class="action-item action-priority-2">
+    <div class="action-item action-priority-2" style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #f59e0b; background: {"#2d2a1a" if st.session_state.dark_mode else "#fffbeb"}; color: {"white" if st.session_state.dark_mode else "#1a202c"};">
         <strong>🟠 PRIORITY 2: Stop Wasting Food</strong><br>
         🍎 {school_data["food_waste"]} lbs wasted daily → Divert {school_data["food_waste"] * 180:,} lbs/year
     </div>
-    <div class="action-item action-priority-3">
+    <div class="action-item action-priority-3" style="padding: 1rem; margin: 1rem 0; border-radius: 16px; border-left: 4px solid #10b981; background: {"#1a2d1a" if st.session_state.dark_mode else "#ecfdf5"}; color: {"white" if st.session_state.dark_mode else "#1a202c"};">
         <strong>🟢 PRIORITY 3: Turn Off Lights</strong><br>
         💡 {school_data["lights_on"]} classrooms leave lights on → Save $50/month
     </div>
     ''', unsafe_allow_html=True)
     
-    # ===== AI FEATURE: PERSONALIZED RECOMMENDATIONS =====
+    # AI Feature: Personalized Recommendations
     if os.path.exists(data_file):
         history = pd.read_csv(data_file)
         if len(history) > 3:
             st.markdown("### 🤖 AI-Powered Custom Recommendations")
             
-            # Analyze which area needs most improvement
             walk_rate = history['walk'].mean() / (history['walk'].mean() + history['car_alone'].mean()) * 100 if (history['walk'].mean() + history['car_alone'].mean()) > 0 else 50
             waste_avg = history['food_waste_lbs'].mean()
             lights_avg = history['lights_left_on'].mean()
@@ -506,7 +466,7 @@ elif st.session_state.page == "Action Plan":
             if not recommendations_made:
                 st.success("🎉 Your school is doing great across all metrics! Keep up the amazing work!")
     
-    # ===== AI FEATURE: SMART GOAL SETTING =====
+    # AI Feature: Smart Goal Setting
     if os.path.exists(data_file):
         history = pd.read_csv(data_file)
         if len(history) > 3:
@@ -515,7 +475,6 @@ elif st.session_state.page == "Action Plan":
             col_goal1, col_goal2 = st.columns(2)
             
             with col_goal1:
-                # Walking goal
                 walk_first = history['walk'].iloc[0]
                 walk_last = history['walk'].iloc[-1]
                 walk_change = walk_last - walk_first
@@ -532,7 +491,6 @@ elif st.session_state.page == "Action Plan":
                               delta="Aim for +10 students")
             
             with col_goal2:
-                # Waste reduction goal
                 waste_first = history['food_waste_lbs'].iloc[0]
                 waste_last = history['food_waste_lbs'].iloc[-1]
                 waste_change = waste_last - waste_first
@@ -559,14 +517,13 @@ elif st.session_state.page == "Simulator":
         walk_pct = st.slider("🚶 Increase walk/bike by:", 0, 100, 20)
         st.metric("Fewer Solo Cars Daily", f"-{int(54 * walk_pct / 100)}")
     
-    # ===== AI FEATURE: TREND PREDICTION =====
+    # AI Feature: Trend Prediction
     if os.path.exists(data_file):
         history = pd.read_csv(data_file)
         if len(history) > 3:
             st.markdown("---")
             st.markdown("### 🤖 AI Trend Prediction")
             
-            # Predict future walk counts using linear regression
             days = np.array(range(len(history))).reshape(-1, 1)
             walks = history['walk'].values
             
@@ -586,7 +543,6 @@ elif st.session_state.page == "Simulator":
                 else:
                     st.warning("📉 Trending downward. Time for a new walking campaign!")
             
-            # Show prediction chart
             pred_days = list(range(len(history) + 30))
             pred_walks = list(walks) + list(future_walks)
             
@@ -642,7 +598,6 @@ elif st.session_state.page == "Data Entry":
         submitted = st.form_submit_button("💾 Save Data", type="primary")
         
         if submitted:
-            # Create new data row
             new_data = pd.DataFrame([{
                 "date": date,
                 "walk": walk,
@@ -653,7 +608,6 @@ elif st.session_state.page == "Data Entry":
                 "lights_left_on": lights_left
             }])
             
-            # Append to existing file or create new
             if os.path.exists(data_file):
                 existing = pd.read_csv(data_file)
                 combined = pd.concat([existing, new_data], ignore_index=True)
@@ -672,7 +626,6 @@ elif st.session_state.page == "Data Entry":
         history_display = history.sort_values("date", ascending=False)
         st.dataframe(history_display, use_container_width=True)
         
-        # Download button
         csv = history.to_csv(index=False)
         st.download_button(
             label="📥 Download All Data as CSV",
@@ -681,7 +634,6 @@ elif st.session_state.page == "Data Entry":
             mime="text/csv"
         )
         
-        # Show trends
         if len(history) > 1:
             st.markdown("---")
             st.markdown("### 📈 Trends Over Time")
@@ -699,19 +651,17 @@ elif st.session_state.page == "Data Entry":
                 waste_change = waste_last - waste_first
                 st.metric("🍎 Food Waste Trend", f"{waste_last:.0f} lbs", delta=f"{waste_change:+.0f} vs first day")
             
-            # Simple line chart
             st.markdown("#### Walk to School Over Time")
             fig = px.line(history, x='date', y='walk', title='Students Walking to School')
             st.plotly_chart(fig, use_container_width=True)
             
-            # Food waste trend chart
             st.markdown("#### Food Waste Over Time")
             fig2 = px.line(history, x='date', y='food_waste_lbs', title='Pounds of Food Waste per Day')
             st.plotly_chart(fig2, use_container_width=True)
 
 # ===== FOOTER =====
 st.markdown("""
-<div class="footer">
+<div class="footer" style="text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #e2e8f0; margin-top: 2rem;">
     <strong>🌱 Eco-School Dashboard</strong> · AI-powered · Built for USAII Hackathon 2026
 </div>
 """, unsafe_allow_html=True)
