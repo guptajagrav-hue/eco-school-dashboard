@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 import numpy as np
+import os
 
 # ===== PAGE CONFIG =====
 st.set_page_config(
@@ -77,26 +78,6 @@ st.markdown("""
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-/* Individual nav button */
-.nav-button {
-    background: transparent;
-    border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 40px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: #4a5568;
-}
-.nav-button:hover {
-    background: #e2e8f0;
-}
-.nav-button-active {
-    background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%);
-    color: white;
-}
-
 /* Leaderboard items */
 .leaderboard-item {
     padding: 0.8rem 1rem;
@@ -160,7 +141,7 @@ def set_page(page_name):
     st.session_state.page = page_name
     st.rerun()
 
-# ===== NAVIGATION BUTTONS (WORKING) =====
+# ===== NAVIGATION BUTTONS =====
 st.markdown('<div class="nav-container">', unsafe_allow_html=True)
 
 cols = st.columns(6)
@@ -194,15 +175,20 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ===== SIDEBAR (Minimal) =====
+# ===== SIDEBAR =====
 with st.sidebar:
     st.markdown("### ⚙️ Settings")
-    school_name = st.text_input("School Name:", value="Washington Middle School")
+    school_name_input = st.text_input("School Name:", value="Washington Middle School")
     st.markdown("---")
     if st.button("🤖 Why AI?", use_container_width=True):
         st.info("AI analyzes transportation, waste, and energy data to find the highest-impact actions for YOUR school.")
     st.markdown("---")
     st.link_button("🐦 Share on Twitter", "https://twitter.com/intent/tweet?text=Check%20out%20Eco-School%20Dashboard!%20🌱", use_container_width=True)
+    
+    # Show data file status
+    data_file = "school_data_log.csv"
+    if os.path.exists(data_file):
+        st.success(f"✅ {os.path.getsize(data_file) // 1024} KB of data saved")
 
 # ===== DATA =====
 school_data = {
@@ -301,18 +287,15 @@ def create_hexagon_chart(scores, title="Environmental Profile"):
     
     return fig
 
-# ===== PAGE CONTENT =====
-page = st.session_state.page
-
 # ===== DASHBOARD PAGE =====
-if page == "Dashboard":
+if st.session_state.page == "Dashboard":
     st.markdown('<div class="section-header">📊 Environmental Dashboard</div>', unsafe_allow_html=True)
     
     # Hexagon Chart INSIDE the curved box
     st.markdown('<div class="profile-box">', unsafe_allow_html=True)
     st.markdown('<h3 style="text-align: center; margin-bottom: 1rem;">🌿 Environmental Profile</h3>', unsafe_allow_html=True)
     
-    hex_fig = create_hexagon_chart(environmental_profile, f"{school_name} - 6 Pillars of Sustainability")
+    hex_fig = create_hexagon_chart(environmental_profile, f"{school_name_input} - 6 Pillars of Sustainability")
     st.plotly_chart(hex_fig, use_container_width=True)
     
     avg_score = sum(environmental_profile.values()) / len(environmental_profile)
@@ -389,7 +372,7 @@ if page == "Dashboard":
         ''', unsafe_allow_html=True)
 
 # ===== LEADERBOARD PAGE =====
-elif page == "Leaderboard":
+elif st.session_state.page == "Leaderboard":
     st.markdown('<div class="section-header">🏆 Green Classroom Leaderboard</div>', unsafe_allow_html=True)
     
     leaderboard = []
@@ -403,7 +386,7 @@ elif page == "Leaderboard":
         st.markdown(f'<div class="leaderboard-item"><b>{medal}</b> {item["room"]} — <b>{item["score"]} points</b> | {lights_status}</div>', unsafe_allow_html=True)
 
 # ===== ACTION PLAN PAGE =====
-elif page == "Action Plan":
+elif st.session_state.page == "Action Plan":
     st.markdown('<div class="section-header">📋 Custom Action Plan</div>', unsafe_allow_html=True)
     
     st.markdown(f'''
@@ -422,7 +405,7 @@ elif page == "Action Plan":
     ''', unsafe_allow_html=True)
 
 # ===== SIMULATOR PAGE =====
-elif page == "Simulator":
+elif st.session_state.page == "Simulator":
     st.markdown('<div class="section-header">🌡️ What If Simulator</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
@@ -434,7 +417,7 @@ elif page == "Simulator":
         st.metric("Fewer Solo Cars Daily", f"-{int(54 * walk_pct / 100)}")
 
 # ===== COMMUNITY PAGE =====
-elif page == "Community":
+elif st.session_state.page == "Community":
     st.markdown('<div class="section-header">🌱 Community Action Tracker</div>', unsafe_allow_html=True)
     
     actions = ["🌳 Planted a tree", "🚗 Started carpooling", "🗑️ Waste audit", "💡 Energy monitors", "💧 Water station"]
@@ -444,16 +427,95 @@ elif page == "Community":
         st.balloons()
         st.success("Thanks for helping! 🌍")
 
-# ===== DATA ENTRY PAGE =====
-elif page == "Data Entry":
+# ===== DATA ENTRY PAGE WITH CSV SAVE =====
+elif st.session_state.page == "Data Entry":
     st.markdown('<div class="section-header">📥 Enter School Data</div>', unsafe_allow_html=True)
     
+    data_file = "school_data_log.csv"
+    
     with st.form("data_form"):
-        walk = st.number_input("Students who walked:", 0, 500, 135)
-        bike = st.number_input("Students who biked:", 0, 500, 45)
-        submitted = st.form_submit_button("💾 Save")
+        st.markdown("### 🚗 Transportation")
+        col_a, col_b = st.columns(2)
+        with col_a:
+            walk = st.number_input("Students who walked:", min_value=0, max_value=1000, value=135)
+            bike = st.number_input("Students who biked:", min_value=0, max_value=1000, value=45)
+        with col_b:
+            car_alone = st.number_input("Students in car alone:", min_value=0, max_value=1000, value=54)
+        
+        st.markdown("### 🗑️ Cafeteria Waste")
+        food_waste = st.number_input("Pounds of uneaten food:", min_value=0.0, max_value=500.0, value=24.0, step=1.0)
+        
+        st.markdown("### 💡 Energy")
+        lights_left = st.number_input("Classrooms that left lights on:", min_value=0, max_value=50, value=5)
+        
+        date = st.date_input("Date:", datetime.now())
+        
+        submitted = st.form_submit_button("💾 Save Data", type="primary")
+        
         if submitted:
-            st.success("Data saved!")
+            # Create new data row
+            new_data = pd.DataFrame([{
+                "date": date,
+                "walk": walk,
+                "bike": bike,
+                "car_alone": car_alone,
+                "total_students": walk + bike + car_alone,
+                "food_waste_lbs": food_waste,
+                "lights_left_on": lights_left
+            }])
+            
+            # Append to existing file or create new
+            if os.path.exists(data_file):
+                existing = pd.read_csv(data_file)
+                combined = pd.concat([existing, new_data], ignore_index=True)
+                combined.to_csv(data_file, index=False)
+            else:
+                new_data.to_csv(data_file, index=False)
+            
+            st.success("✅ Data saved! View history below.")
+            st.balloons()
+    
+    # Show saved data history
+    if os.path.exists(data_file):
+        st.markdown("---")
+        st.markdown("### 📊 Data History")
+        history = pd.read_csv(data_file)
+        history_display = history.sort_values("date", ascending=False)
+        st.dataframe(history_display, use_container_width=True)
+        
+        # Download button
+        csv = history.to_csv(index=False)
+        st.download_button(
+            label="📥 Download All Data as CSV",
+            data=csv,
+            file_name=f"eco_school_data_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv"
+        )
+        
+        # Show trends
+        if len(history) > 1:
+            st.markdown("---")
+            st.markdown("### 📈 Trends Over Time")
+            
+            col_t1, col_t2 = st.columns(2)
+            with col_t1:
+                walk_first = history['walk'].iloc[0]
+                walk_last = history['walk'].iloc[-1]
+                walk_change = walk_last - walk_first
+                st.metric("🚶 Walk to School Trend", f"{walk_last} students", delta=f"{walk_change:+.0f} vs first day")
+            
+            with col_t2:
+                waste_first = history['food_waste_lbs'].iloc[0]
+                waste_last = history['food_waste_lbs'].iloc[-1]
+                waste_change = waste_last - waste_first
+                st.metric("🍎 Food Waste Trend", f"{waste_last:.0f} lbs", delta=f"{waste_change:+.0f} vs first day")
+            
+            # Simple line chart
+            st.markdown("#### Walk to School Over Time")
+            fig = px.line(history, x='date', y='walk', title='Students Walking to School')
+            st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("No data yet. Submit the form above to start tracking your school's environmental impact!")
 
 # ===== FOOTER =====
 st.markdown("""
