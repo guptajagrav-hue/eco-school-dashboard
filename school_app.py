@@ -18,17 +18,17 @@ st.set_page_config(
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
 
-# ===== CUSTOM CSS WITH ANIMATED TOGGLE =====
+# ===== CUSTOM CSS =====
 def get_css(dark_mode):
     if dark_mode:
         return """
         <style>
         /* Dark mode styles */
-        .stApp { background: linear-gradient(135deg, #070b1d 0%, #101425 100%); }
+        .stApp { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
         .metric-card { background: #0f3460; color: white; box-shadow: 0 8px 20px rgba(0,0,0,0.3); border-radius: 20px; padding: 1.2rem; text-align: center; transition: transform 0.2s; margin-bottom: 1rem; }
         .metric-card:hover { transform: translateY(-5px); background: #1a1a2e; }
         .metric-value { font-size: 2.2rem; font-weight: 800; color: white; }
-        .metric-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; color: #a4a5b8; }
+        .metric-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; color: #dfe6e9; }
         .metric-sub { font-size: 0.7rem; color: #a0aec0; }
         .section-header { font-size: 1.5rem; font-weight: 700; color: #00b894; margin-top: 1.5rem; margin-bottom: 1rem; border-left: 4px solid #00b894; padding-left: 1rem; }
         .leaderboard-item { padding: 0.8rem 1rem; margin: 0.5rem 0; border-radius: 12px; background: #0f3460; color: white; display: flex; justify-content: space-between; align-items: center; }
@@ -42,28 +42,6 @@ def get_css(dark_mode):
         [data-testid="stSidebar"] { background: #0f3460; }
         [data-testid="stSidebar"] * { color: white !important; }
         .stTextInput > div > div > input { background-color: #1a1a2e !important; color: #ffffff !important; border: 1px solid #00b894 !important; border-radius: 8px !important; }
-        /* Animated Toggle Button */
-        .theme-switch {
-            background: #101425;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            padding: 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .theme-switch:hover {
-            transform: scale(1.05);
-            background: #1a1a2e;
-        }
-        .theme-switch svg {
-            fill: #a4a5b8;
-            transition: fill 0.3s ease;
-        }
         .card-green { background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); color: white; }
         .card-blue { background: linear-gradient(135deg, #1e6f9f 0%, #3b82f6 100%); color: white; }
         .card-orange { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: white; }
@@ -77,45 +55,23 @@ def get_css(dark_mode):
         <style>
         /* Light mode styles */
         .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%); }
-        .metric-card { background: white; color: #111528; box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-radius: 20px; padding: 1.2rem; text-align: center; transition: transform 0.2s; margin-bottom: 1rem; }
+        .metric-card { background: white; color: #1a202c; box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-radius: 20px; padding: 1.2rem; text-align: center; transition: transform 0.2s; margin-bottom: 1rem; }
         .metric-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); }
-        .metric-value { font-size: 2.2rem; font-weight: 800; color: #111528; }
-        .metric-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; color: #232738; }
+        .metric-value { font-size: 2.2rem; font-weight: 800; color: #1a202c; }
+        .metric-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; color: #4a5568; }
         .metric-sub { font-size: 0.7rem; color: #718096; }
-        .section-header { font-size: 1.5rem; font-weight: 700; color: #111528; margin-top: 1.5rem; margin-bottom: 1rem; border-left: 4px solid #2e8b57; padding-left: 1rem; }
-        .leaderboard-item { padding: 0.8rem 1rem; margin: 0.5rem 0; border-radius: 12px; background: #f8faf8; color: #111528; display: flex; justify-content: space-between; align-items: center; }
+        .section-header { font-size: 1.5rem; font-weight: 700; color: #1a202c; margin-top: 1.5rem; margin-bottom: 1rem; border-left: 4px solid #2e8b57; padding-left: 1rem; }
+        .leaderboard-item { padding: 0.8rem 1rem; margin: 0.5rem 0; border-radius: 12px; background: #f8faf8; color: #1a202c; display: flex; justify-content: space-between; align-items: center; }
         .footer { text-align: center; padding: 2rem; color: #718096; font-size: 0.8rem; border-top: 1px solid #e2e8f0; margin-top: 2rem; }
         .profile-box { background: white; border-radius: 24px; padding: 1.5rem; text-align: center; margin-bottom: 1rem; }
-        .profile-box h3 { color: #111528; }
-        .stMarkdown, .stText, label, .stMetric label, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label { color: #111528 !important; }
+        .profile-box h3 { color: #1a202c; }
+        .stMarkdown, .stText, label, .stMetric label, .stNumberInput label, .stSelectbox label, .stRadio label, .stSlider label, .stCheckbox label { color: #1a202c !important; }
         .stMetric div[data-testid="stMetricValue"] { color: #2e8b57 !important; }
         .stButton > button { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; border-radius: 30px; transition: all 0.2s; }
         .stButton > button:hover { transform: scale(1.02); }
         [data-testid="stSidebar"] { background: #ffffff; }
-        [data-testid="stSidebar"] * { color: #111528 !important; }
-        .stTextInput > div > div > input { background-color: #ffffff !important; color: #111528 !important; border: 1px solid #cbd5e1 !important; border-radius: 8px !important; }
-        /* Animated Toggle Button */
-        .theme-switch {
-            background: #e8e9ed;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            padding: 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .theme-switch:hover {
-            transform: scale(1.05);
-            background: #d0d1d5;
-        }
-        .theme-switch svg {
-            fill: #3a435d;
-            transition: fill 0.3s ease;
-        }
+        [data-testid="stSidebar"] * { color: #1a202c !important; }
+        .stTextInput > div > div > input { background-color: #ffffff !important; color: #1a202c !important; border: 1px solid #cbd5e1 !important; border-radius: 8px !important; }
         .card-green { background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%); color: white; }
         .card-blue { background: linear-gradient(135deg, #1e6f9f 0%, #3b82f6 100%); color: white; }
         .card-orange { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: white; }
@@ -128,53 +84,22 @@ def get_css(dark_mode):
 # Apply CSS
 st.markdown(get_css(st.session_state.dark_mode), unsafe_allow_html=True)
 
-# ===== ANIMATED TOGGLE BUTTON (Sun/Moon Icons) =====
-# SVG icons (same as your reference)
-sun_svg = '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M480-120q-150 0-255-105T120-480q0-150 105-255t255-105q14 0 27.5 1t26.5 3q-41 29-65.5 75.5T444-660q0 90 63 153t153 63q55 0 101-24.5t75-65.5q2 13 3 26.5t1 27.5q0 150-105 255T480-120Z"/></svg>'
-moon_svg = '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M480-280q-83 0-141.5-58.5T280-480q0-83 58.5-141.5T480-680q83 0 141.5 58.5T680-480q0 83-58.5 141.5T480-280ZM200-440H40v-80h160v80Zm720 0H760v-80h160v80ZM440-760v-160h80v160h-80Zm0 720v-160h80v160h-80ZM256-650l-101-97 57-59 96 100-52 56Zm492 496-97-101 53-55 101 97-57 59Zm-98-550 97-101 59 57-100 96-56-52ZM154-212l101-97 55 53-97 101-59-57Z"/></svg>'
-
-# Header with toggle
+# ===== HEADER WITH SIMPLE WORKING TOGGLE =====
 col_title, col_toggle = st.columns([4, 1])
 with col_title:
-    st.markdown('<h1 style="margin: 0; text-align: center;">🌱 Eco-School Dashboard</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="text-align: center; margin-top: 0;">Track your school\'s environmental impact · AI-powered insights</p>', unsafe_allow_html=True)
+    st.markdown('<h1 style="text-align: center; color: #2e8b57; margin: 0;">🌱 Eco-School Dashboard</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align: center; color: #4a5568; margin-top: 0;">Track your school\'s environmental impact · AI-powered insights</p>', unsafe_allow_html=True)
 with col_toggle:
-    # Display the appropriate icon based on current mode
+    # Simple working toggle - changes text based on mode
     if st.session_state.dark_mode:
-        toggle_html = f'<button class="theme-switch" id="themeToggle">{moon_svg}</button>'
+        toggle_label = "☀️ Light Mode"
     else:
-        toggle_html = f'<button class="theme-switch" id="themeToggle">{sun_svg}</button>'
+        toggle_label = "🌙 Dark Mode"
     
-    st.markdown(toggle_html, unsafe_allow_html=True)
-    
-    # JavaScript to handle toggle click and rerun Streamlit
-    st.markdown("""
-    <script>
-        const toggleBtn = document.getElementById('themeToggle');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => {
-                const url = new URL(window.location.href);
-                const currentMode = url.searchParams.get('dark_mode');
-                if (currentMode === 'true') {
-                    url.searchParams.delete('dark_mode');
-                } else {
-                    url.searchParams.set('dark_mode', 'true');
-                }
-                window.location.href = url;
-            });
-        }
-    </script>
-    """, unsafe_allow_html=True)
-
-# Check URL params for dark mode toggle
-query_params = st.query_params
-if 'dark_mode' in query_params and query_params['dark_mode'] == 'true':
-    if not st.session_state.dark_mode:
-        st.session_state.dark_mode = True
+    new_dark_mode = st.toggle(toggle_label, value=st.session_state.dark_mode)
+    if new_dark_mode != st.session_state.dark_mode:
+        st.session_state.dark_mode = new_dark_mode
         st.rerun()
-elif 'dark_mode' not in query_params and st.session_state.dark_mode:
-    st.session_state.dark_mode = False
-    st.rerun()
 
 # ===== SESSION STATE FOR NAVIGATION =====
 if 'page' not in st.session_state:
