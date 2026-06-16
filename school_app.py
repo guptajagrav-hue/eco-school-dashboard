@@ -71,6 +71,17 @@ def load_data():
     try:
         df = pd.read_csv(DATA_FILE)
         df['date'] = pd.to_datetime(df['date'])
+        
+        # Check for required columns
+        required = ['walk', 'bike', 'car', 'bus', 'lights_left_on', 
+                    'food_waste_lbs', 'recycling_lbs', 'paper_reams', 
+                    'trees_planted', 'total_students']
+        missing = [col for col in required if col not in df.columns]
+        
+        if missing:
+            # If columns are missing, regenerate data
+            df = generate_demo_data()
+        
         return df
     except:
         return generate_demo_data()
@@ -149,7 +160,7 @@ def get_badges(df):
     return badges if badges else ["🌱 Eco-Rookie"]
 
 # ============================================================
-# UI: CSS (Mobile-First)
+# UI: CSS
 # ============================================================
 def get_css(dark_mode):
     bg = "#0a0a12" if dark_mode else "#f8fafc"
@@ -614,18 +625,17 @@ elif selected_page == "📊 Reports":
     savings = calculate_cost_savings(df)
     badges = get_badges(df)
     
-    # Report content
     report = f"""
-    🌱 ECO-SCHOOL REPORT CARD
-    📅 {datetime.now().strftime('%B %d, %Y')}
-    
-    Overall Grade: {grade} ({score:.0f}/100)
-    Walk/Bike Rate: {walk_pct:.0f}%
-    Trees Planted: {latest['trees_planted']}
-    Daily Savings: ${savings['total']:.0f}
-    Annual Savings: ${savings['annual']:.0f}
-    
-    Badges: {', '.join(badges)}
+🌱 ECO-SCHOOL REPORT CARD
+📅 {datetime.now().strftime('%B %d, %Y')}
+
+Overall Grade: {grade} ({score:.0f}/100)
+Walk/Bike Rate: {walk_pct:.0f}%
+Trees Planted: {latest['trees_planted']}
+Daily Savings: ${savings['total']:.0f}
+Annual Savings: ${savings['annual']:.0f}
+
+Badges: {', '.join(badges)}
     """
     
     st.markdown(f"""
