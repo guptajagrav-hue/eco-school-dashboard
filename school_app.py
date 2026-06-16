@@ -1,4 +1,4 @@
-# ===== ECO-SCHOOL AI — PROFESSIONAL VERSION =====
+# ===== ECO-SCHOOL AI — COMPLETE WINNING VERSION =====
 # Run: python -m streamlit run school_app.py
 # USAII Hackathon 2026 Submission
 
@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import random
 import os
+import json
 from sklearn.linear_model import LinearRegression
 import warnings
 warnings.filterwarnings('ignore')
@@ -22,14 +23,32 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ===== DARK MODE =====
-if 'dark_mode' not in st.session_state:
-    st.session_state.dark_mode = False
-
-# ===== DATA FILE =====
+# ============================================================
+# DATA LAYER
+# ============================================================
 DATA_FILE = "school_data.csv"
+SCHOOLS_FILE = "schools_data.json"
 
-# ===== GENERATE DEMO DATA =====
+def get_default_schools():
+    return {
+        "Washington Middle": {"walk_pct": 45, "grade": "B", "points": 78, "trees": 12},
+        "Brooklyn Prep": {"walk_pct": 52, "grade": "A", "points": 92, "trees": 18},
+        "Queens Academy": {"walk_pct": 38, "grade": "C", "points": 65, "trees": 8},
+        "Bronx Leadership": {"walk_pct": 30, "grade": "D", "points": 52, "trees": 5},
+        "Staten Island HS": {"walk_pct": 55, "grade": "A", "points": 88, "trees": 15},
+        "Your School": {"walk_pct": 0, "grade": "?", "points": 0, "trees": 0}
+    }
+
+def load_schools():
+    if os.path.exists(SCHOOLS_FILE):
+        with open(SCHOOLS_FILE, 'r') as f:
+            return json.load(f)
+    return get_default_schools()
+
+def save_schools(schools):
+    with open(SCHOOLS_FILE, 'w') as f:
+        json.dump(schools, f, indent=2)
+
 def generate_demo_data():
     dates = pd.date_range(end=datetime.now(), periods=30)
     data = pd.DataFrame({
@@ -57,10 +76,24 @@ def load_data():
         return generate_demo_data()
 
 df = load_data()
+schools = load_schools()
 
 # ============================================================
 # AI FUNCTIONS
 # ============================================================
+def calculate_grade(df):
+    latest = df.iloc[-1]
+    walk_pct = (latest['walk'] + latest['bike']) / latest['total_students'] * 100
+    total_waste = latest['food_waste_lbs'] + latest['recycling_lbs']
+    waste_pct = (latest['recycling_lbs'] / total_waste * 100) if total_waste > 0 else 0
+    energy_score = max(0, 100 - (latest['lights_left_on'] * 10))
+    overall = (walk_pct * 0.3 + waste_pct * 0.2 + energy_score * 0.3 + min(100, latest['trees_planted'] * 2))
+    if overall > 80: return 'A', overall, '#2e8b57'
+    if overall > 60: return 'B', overall, '#3b82f6'
+    if overall > 40: return 'C', overall, '#f59e0b'
+    if overall > 20: return 'D', overall, '#ef4444'
+    return 'F', overall, '#dc2626'
+
 def detect_anomalies(df):
     anomalies = []
     latest = df.iloc[-1]
@@ -91,215 +124,131 @@ def predict_trends(df, days=14):
         }
     return predictions
 
-def calculate_grade(df):
+def calculate_cost_savings(df):
     latest = df.iloc[-1]
-    walk_pct = (latest['walk'] + latest['bike']) / latest['total_students'] * 100
-    total_waste = latest['food_waste_lbs'] + latest['recycling_lbs']
-    waste_pct = (latest['recycling_lbs'] / total_waste * 100) if total_waste > 0 else 0
-    energy_score = max(0, 100 - (latest['lights_left_on'] * 10))
-    overall = (walk_pct * 0.3 + waste_pct * 0.2 + energy_score * 0.3 + min(100, latest['trees_planted'] * 2))
-    if overall > 80: return 'A', overall, '#2e8b57'
-    if overall > 60: return 'B', overall, '#3b82f6'
-    if overall > 40: return 'C', overall, '#f59e0b'
-    if overall > 20: return 'D', overall, '#ef4444'
-    return 'F', overall, '#dc2626'
+    energy = latest['lights_left_on'] * 10
+    waste = latest['food_waste_lbs'] * 0.5
+    transport = (latest['car'] * 0.2)
+    total = energy + waste + transport
+    return {
+        'energy': energy,
+        'waste': waste,
+        'transport': transport,
+        'total': total,
+        'annual': total * 180
+    }
+
+def get_badges(df):
+    latest = df.iloc[-1]
+    badges = []
+    if latest['trees_planted'] >= 5: badges.append("🌳 Tree Champion")
+    if df['walk'].mean() > 140: badges.append("🚶 Walking Hero")
+    if df['food_waste_lbs'].mean() < 22: badges.append("🍎 Waste Warrior")
+    if latest['lights_left_on'] <= 2: badges.append("💡 Energy Saver")
+    if len(df) >= 30: badges.append("📊 Data Master")
+    return badges if badges else ["🌱 Eco-Rookie"]
 
 # ============================================================
-# PROFESSIONAL CSS
+# UI: CSS (Mobile-First)
 # ============================================================
 def get_css(dark_mode):
-    if dark_mode:
-        return """
-        <style>
-        /* Reset */
-        .stApp { background: #0a0a12; }
-        .stApp header { background: rgba(10,10,18,0.8); backdrop-filter: blur(10px); }
-        
-        /* Typography */
-        h1, h2, h3, h4, .stMarkdown, .stText, label, .stMetric label {
-            color: #f0f3f8 !important;
-            font-family: 'Inter', -apple-system, sans-serif;
-        }
-        
-        /* Metric Cards */
-        .metric-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 16px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-        .metric-card:hover {
-            background: rgba(255,255,255,0.08);
-            transform: translateY(-2px);
-        }
-        .metric-card .value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-        .metric-card .label {
-            font-size: 0.85rem;
-            opacity: 0.7;
-            margin-top: 0.25rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .metric-card .sub {
-            font-size: 0.7rem;
-            opacity: 0.5;
-            margin-top: 0.5rem;
-        }
-        
-        /* Feature Cards (like F-Secure) */
-        .feature-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 16px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-            height: 100%;
-        }
-        .feature-card:hover {
-            background: rgba(255,255,255,0.06);
-            transform: translateY(-4px);
-        }
-        .feature-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
-        .feature-card .title { font-weight: 600; font-size: 1.1rem; margin-bottom: 0.25rem; }
-        .feature-card .desc { opacity: 0.6; font-size: 0.9rem; }
-        
-        /* Buttons */
-        .stButton > button {
-            background: linear-gradient(135deg, #2e8b57, #3cb371) !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 30px !important;
-            padding: 0.6rem 1.8rem !important;
-            font-weight: 600 !important;
-            transition: all 0.3s ease !important;
-        }
-        .stButton > button:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 30px rgba(46,139,87,0.3);
-        }
-        
-        /* Anomaly cards */
-        .anomaly-card {
-            background: rgba(239,68,68,0.1);
-            border: 1px solid rgba(239,68,68,0.2);
-            border-radius: 12px;
-            padding: 0.75rem 1rem;
-            margin: 0.25rem 0;
-        }
-        
-        /* Sidebar */
-        [data-testid="stSidebar"] {
-            background: rgba(10,10,18,0.95);
-            border-right: 1px solid rgba(255,255,255,0.05);
-        }
-        [data-testid="stSidebar"] * { color: #f0f3f8 !important; }
-        
-        /* Toggle */
-        .stToggle { color: #f0f3f8 !important; }
-        </style>
-        """
-    else:
-        return """
-        <style>
-        /* Reset */
-        .stApp { background: #f8fafc; }
-        .stApp header { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); }
-        
-        /* Typography */
-        h1, h2, h3, h4, .stMarkdown, .stText, label, .stMetric label {
-            color: #0a0a12 !important;
-            font-family: 'Inter', -apple-system, sans-serif;
-        }
-        
-        /* Metric Cards */
-        .metric-card {
-            background: white;
-            border: 1px solid rgba(0,0,0,0.04);
-            border-radius: 16px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-        }
-        .metric-card:hover {
-            box-shadow: 0 8px 30px rgba(0,0,0,0.06);
-            transform: translateY(-2px);
-        }
-        .metric-card .value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-        .metric-card .label {
-            font-size: 0.85rem;
-            opacity: 0.6;
-            margin-top: 0.25rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .metric-card .sub {
-            font-size: 0.7rem;
-            opacity: 0.4;
-            margin-top: 0.5rem;
-        }
-        
-        /* Feature Cards */
-        .feature-card {
-            background: white;
-            border: 1px solid rgba(0,0,0,0.04);
-            border-radius: 16px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-            height: 100%;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-        }
-        .feature-card:hover {
-            box-shadow: 0 8px 30px rgba(0,0,0,0.06);
-            transform: translateY(-4px);
-        }
-        .feature-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
-        .feature-card .title { font-weight: 600; font-size: 1.1rem; margin-bottom: 0.25rem; }
-        .feature-card .desc { opacity: 0.6; font-size: 0.9rem; }
-        
-        /* Buttons */
-        .stButton > button {
-            background: linear-gradient(135deg, #2e8b57, #3cb371) !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 30px !important;
-            padding: 0.6rem 1.8rem !important;
-            font-weight: 600 !important;
-            transition: all 0.3s ease !important;
-        }
-        .stButton > button:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 30px rgba(46,139,87,0.2);
-        }
-        
-        /* Anomaly cards */
-        .anomaly-card {
-            background: rgba(239,68,68,0.05);
-            border: 1px solid rgba(239,68,68,0.1);
-            border-radius: 12px;
-            padding: 0.75rem 1rem;
-            margin: 0.25rem 0;
-        }
-        
-        /* Sidebar */
-        [data-testid="stSidebar"] {
-            background: white;
-            border-right: 1px solid rgba(0,0,0,0.04);
-        }
-        [data-testid="stSidebar"] * { color: #0a0a12 !important; }
-        </style>
-        """
+    bg = "#0a0a12" if dark_mode else "#f8fafc"
+    card_bg = "rgba(255,255,255,0.04)" if dark_mode else "white"
+    text = "#f0f3f8" if dark_mode else "#0a0a12"
+    border = "rgba(255,255,255,0.06)" if dark_mode else "rgba(0,0,0,0.04)"
+    
+    return f"""
+    <style>
+    .stApp {{ background: {bg}; }}
+    .stApp header {{ background: {bg}; backdrop-filter: blur(10px); }}
+    h1, h2, h3, h4, .stMarkdown, .stText, label, .stMetric label {{ color: {text} !important; }}
+    
+    .metric-card {{
+        background: {card_bg};
+        border: 1px solid {border};
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }}
+    .metric-card:hover {{ transform: translateY(-2px); }}
+    .metric-card .value {{ font-size: 2.5rem; font-weight: 700; }}
+    .metric-card .label {{ font-size: 0.85rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.05em; }}
+    .metric-card .sub {{ font-size: 0.7rem; opacity: 0.5; margin-top: 0.5rem; }}
+    
+    .feature-card {{
+        background: {card_bg};
+        border: 1px solid {border};
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        height: 100%;
+    }}
+    .feature-card:hover {{ transform: translateY(-4px); }}
+    .feature-card .icon {{ font-size: 2rem; margin-bottom: 0.5rem; }}
+    .feature-card .title {{ font-weight: 600; font-size: 1.1rem; }}
+    .feature-card .desc {{ opacity: 0.6; font-size: 0.9rem; }}
+    
+    .stButton > button {{
+        background: linear-gradient(135deg, #2e8b57, #3cb371) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 30px !important;
+        padding: 0.6rem 1.8rem !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        width: 100% !important;
+    }}
+    .stButton > button:hover {{
+        transform: scale(1.02);
+        box-shadow: 0 8px 30px rgba(46,139,87,0.3);
+    }}
+    
+    .anomaly-card {{
+        background: rgba(239,68,68,0.08);
+        border: 1px solid rgba(239,68,68,0.15);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        margin: 0.25rem 0;
+    }}
+    .badge-card {{
+        display: inline-block;
+        background: rgba(46,139,87,0.15);
+        border: 1px solid rgba(46,139,87,0.2);
+        border-radius: 30px;
+        padding: 0.25rem 0.75rem;
+        margin: 0.25rem;
+        font-size: 0.8rem;
+    }}
+    .alert-box {{
+        background: rgba(251,146,60,0.1);
+        border: 1px solid rgba(251,146,60,0.2);
+        border-radius: 12px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+    }}
+    [data-testid="stSidebar"] {{
+        background: {card_bg};
+        border-right: 1px solid {border};
+    }}
+    [data-testid="stSidebar"] * {{ color: {text} !important; }}
+    
+    @media (max-width: 640px) {{
+        .metric-card {{ padding: 1rem; }}
+        .metric-card .value {{ font-size: 1.8rem; }}
+        .feature-card {{ padding: 1rem; }}
+        .stButton > button {{ padding: 0.5rem 1rem !important; font-size: 0.9rem; }}
+    }}
+    </style>
+    """
+
+# ============================================================
+# STATE
+# ============================================================
+if 'dark_mode' not in st.session_state:
+    st.session_state.dark_mode = False
+if 'alerts' not in st.session_state:
+    st.session_state.alerts = []
 
 st.markdown(get_css(st.session_state.dark_mode), unsafe_allow_html=True)
 
@@ -324,12 +273,10 @@ with col2:
 # ============================================================
 with st.sidebar:
     st.markdown("### 🌱 Navigation")
-    pages = ["📊 Dashboard", "📥 Data Entry", "📈 Trends", "🤖 AI Predictions", "📋 Action Plan", "🌡️ Simulator"]
+    pages = ["📊 Dashboard", "🏆 Leaderboard", "📥 Data Entry", "📈 Trends", "🤖 AI Predictions", "📋 Action Plan", "🌡️ Simulator", "📊 Reports"]
     selected_page = st.radio("", pages, label_visibility="collapsed")
     
     st.markdown("---")
-    
-    # Dark mode toggle
     new_mode = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode)
     if new_mode != st.session_state.dark_mode:
         st.session_state.dark_mode = new_mode
@@ -348,6 +295,26 @@ if selected_page == "📊 Dashboard":
     walk_pct = (latest['walk'] + latest['bike']) / latest['total_students'] * 100
     total_waste = latest['food_waste_lbs'] + latest['recycling_lbs']
     waste_pct = (latest['recycling_lbs'] / total_waste * 100) if total_waste > 0 else 0
+    badges = get_badges(df)
+    savings = calculate_cost_savings(df)
+    
+    # Update school data
+    schools["Your School"]["walk_pct"] = walk_pct
+    schools["Your School"]["grade"] = grade
+    schools["Your School"]["points"] = int(score)
+    schools["Your School"]["trees"] = int(latest['trees_planted'])
+    save_schools(schools)
+    
+    # Alerts
+    if len(st.session_state.alerts) == 0:
+        if latest['lights_left_on'] > 5:
+            st.session_state.alerts.append("💡 Energy Alert: Lights left on in 5+ classrooms!")
+        if latest['food_waste_lbs'] > 30:
+            st.session_state.alerts.append("🍎 Waste Alert: Food waste is over 30 lbs!")
+    
+    # Display alerts
+    for alert in st.session_state.alerts:
+        st.markdown(f'<div class="alert-box">🚨 {alert}</div>', unsafe_allow_html=True)
     
     # Metrics Row
     col1, col2, col3, col4 = st.columns(4)
@@ -379,39 +346,44 @@ if selected_page == "📊 Dashboard":
     with col4:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="value" style="color: #8b5cf6;">{waste_pct:.0f}%</div>
-            <div class="label">♻️ Waste Diverted</div>
-            <div class="sub">Goal: 70%</div>
+            <div class="value" style="color: #8b5cf6;">${savings['total']:.0f}</div>
+            <div class="label">💰 Daily Savings</div>
+            <div class="sub">${savings['annual']:.0f}/year</div>
         </div>
         """, unsafe_allow_html=True)
     
-    # Feature Cards (like F-Secure)
+    # Badges
+    st.markdown("---")
+    st.markdown("### 🏅 Badges")
+    badge_html = "".join([f'<span class="badge-card">{b}</span>' for b in badges])
+    st.markdown(f'<div>{badge_html}</div>', unsafe_allow_html=True)
+    
+    # Feature Cards
     st.markdown("---")
     st.markdown("### 🌿 Your School's Environmental Profile")
-    
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown("""
+        st.markdown(f"""
         <div class="feature-card">
             <div class="icon">🌳</div>
             <div class="title">Tree Canopy</div>
-            <div class="desc">""" + f"{latest['trees_planted']} trees planted on campus" + """</div>
+            <div class="desc">{latest['trees_planted']} trees planted</div>
         </div>
         """, unsafe_allow_html=True)
     with col2:
-        st.markdown("""
+        st.markdown(f"""
         <div class="feature-card">
             <div class="icon">🚮</div>
             <div class="title">Waste Management</div>
-            <div class="desc">""" + f"{waste_pct:.0f}% diverted from landfill" + """</div>
+            <div class="desc">{waste_pct:.0f}% diverted from landfill</div>
         </div>
         """, unsafe_allow_html=True)
     with col3:
-        st.markdown("""
+        st.markdown(f"""
         <div class="feature-card">
             <div class="icon">⚡</div>
             <div class="title">Energy Efficiency</div>
-            <div class="desc">""" + f"{latest['lights_left_on']} classrooms with lights on" + """</div>
+            <div class="desc">{latest['lights_left_on']} classrooms with lights on</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -421,18 +393,38 @@ if selected_page == "📊 Dashboard":
         st.markdown("### ⚠️ AI-Detected Issues")
         for a in anomalies:
             st.markdown(f'<div class="anomaly-card">🚨 {a}</div>', unsafe_allow_html=True)
+
+# ============================================================
+# PAGE: LEADERBOARD
+# ============================================================
+elif selected_page == "🏆 Leaderboard":
+    st.markdown("### 🏆 School Leaderboard")
+    st.caption("See how your school ranks against others.")
     
-    # Fun insight
+    school_data = []
+    for name, data in schools.items():
+        school_data.append({
+            "School": name,
+            "Walk/Bike %": data['walk_pct'],
+            "Grade": data['grade'],
+            "Points": data['points'],
+            "Trees": data['trees']
+        })
+    
+    df_schools = pd.DataFrame(school_data)
+    df_schools = df_schools.sort_values('Points', ascending=False)
+    
+    st.dataframe(
+        df_schools.style.apply(lambda x: ['background: rgba(46,139,87,0.1)' if i == 0 else '' for i in range(len(x))], axis=0),
+        use_container_width=True,
+        hide_index=True
+    )
+    
     st.markdown("---")
-    st.markdown("### 💡 Quick Insight")
-    if grade == 'A':
-        st.success("🌟 Your school is a sustainability leader! Keep inspiring others.")
-    elif grade == 'B':
-        st.info("💪 Great progress! A few small changes could make you a leader.")
-    elif grade == 'C':
-        st.warning("📈 Good foundation. Focus on energy and waste for biggest impact.")
-    else:
-        st.error("🚀 Start with one action: assign Energy Monitors in every classroom.")
+    st.markdown("### 📊 District Overview")
+    fig = px.bar(df_schools, x='School', y='Points', color='Grade', title='School Environmental Scores')
+    fig.update_layout(height=400)
+    st.plotly_chart(fig, use_container_width=True)
 
 # ============================================================
 # PAGE: DATA ENTRY
@@ -452,7 +444,7 @@ elif selected_page == "📥 Data Entry":
             food = st.number_input("🍎 Food waste (lbs)", min_value=0.0, value=20.0)
             recycle = st.number_input("♻️ Recycling (lbs)", min_value=0.0, value=28.0)
         
-        date = st.date_input("Date", datetime.now())
+        date = st.date_input("📅 Date", datetime.now())
         trees = st.number_input("🌳 New trees planted", min_value=0, value=0)
         
         submitted = st.form_submit_button("💾 Save Data")
@@ -465,6 +457,7 @@ elif selected_page == "📥 Data Entry":
             }
             df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
             df.to_csv(DATA_FILE, index=False)
+            st.session_state.alerts = []
             st.success("✅ Data saved successfully!")
             st.balloons()
 
@@ -476,7 +469,6 @@ elif selected_page == "📈 Trends":
     st.caption("Visualize your school's environmental journey.")
     
     df_sorted = df.sort_values('date')
-    
     col1, col2 = st.columns(2)
     with col1:
         fig = px.line(df_sorted, x='date', y=['walk', 'bike'], 
@@ -527,10 +519,9 @@ elif selected_page == "🤖 AI Predictions":
             st.metric("♻️ Recycling", f"{w['current']:.0f} → {w['future_last']:.0f}",
                       delta=f"{w['future_last'] - w['current']:.0f}")
         
-        # Prediction chart
+        fig = go.Figure()
         df_sorted = df.sort_values('date')
         future_dates = [df_sorted['date'].iloc[-1] + timedelta(days=i+1) for i in range(14)]
-        fig = go.Figure()
         fig.add_trace(go.Scatter(x=df_sorted['date'], y=df_sorted['walk'], 
                                  mode='lines+markers', name='Actual', line=dict(color='#2e8b57')))
         fig.add_trace(go.Scatter(x=future_dates, y=preds['walk']['future'], 
@@ -558,33 +549,25 @@ elif selected_page == "📋 Action Plan":
     total_waste = latest['food_waste_lbs'] + latest['recycling_lbs']
     waste_pct = (latest['recycling_lbs'] / total_waste * 100) if total_waste > 0 else 0
     
-    # Priority cards
     priorities = [
-        {
-            "icon": "💡", "title": "Energy Efficiency",
-            "problem": f"{latest['lights_left_on']} classrooms leave lights on.",
-            "impact": f"Save ${latest['lights_left_on'] * 10:.0f}/month.",
-            "action": "Assign Energy Monitors in each classroom."
-        },
-        {
-            "icon": "🚶", "title": "Transportation",
-            "problem": f"Only {walk_pct:.0f}% walk/bike.",
-            "impact": "Reduce 500 lbs CO2/week.",
-            "action": "Launch 'Walk & Roll Wednesday'."
-        },
-        {
-            "icon": "🍎", "title": "Food Waste",
-            "problem": f"{latest['food_waste_lbs']:.0f} lbs food waste daily.",
-            "impact": "Divert 5,000 lbs/year to hungry people.",
-            "action": "Start a Share Table program."
-        }
+        {"icon": "💡", "title": "Energy Efficiency",
+         "problem": f"{latest['lights_left_on']} classrooms leave lights on.",
+         "impact": f"Save ${latest['lights_left_on'] * 10:.0f}/month.",
+         "action": "Assign Energy Monitors in each classroom."},
+        {"icon": "🚶", "title": "Transportation",
+         "problem": f"Only {walk_pct:.0f}% walk/bike.",
+         "impact": "Reduce 500 lbs CO2/week.",
+         "action": "Launch 'Walk & Roll Wednesday'."},
+        {"icon": "🍎", "title": "Food Waste",
+         "problem": f"{latest['food_waste_lbs']:.0f} lbs food waste daily.",
+         "impact": "Divert 5,000 lbs/year to hungry people.",
+         "action": "Start a Share Table program."}
     ]
     
     for p in priorities:
+        bg = 'rgba(255,255,255,0.03)' if st.session_state.dark_mode else '#f8faf8'
         st.markdown(f"""
-        <div style="background: {'rgba(255,255,255,0.03)' if st.session_state.dark_mode else '#f8faf8'}; 
-                    border-radius: 12px; padding: 1rem; margin: 0.75rem 0; 
-                    border-left: 4px solid #2e8b57;">
+        <div style="background: {bg}; border-radius: 12px; padding: 1rem; margin: 0.75rem 0; border-left: 4px solid #2e8b57;">
             <h4>{p['icon']} {p['title']}</h4>
             <p style="margin: 0.25rem 0; opacity: 0.7;">{p['problem']}</p>
             <p style="margin: 0.25rem 0;"><strong>Impact:</strong> {p['impact']}</p>
@@ -617,6 +600,53 @@ elif selected_page == "🌡️ Simulator":
     score = (trees * 0.5 + pct * 0.5) / 100
     st.progress(min(1.0, score))
     st.caption(f"🌱 Overall impact: {min(100, trees + pct):.0f}/100")
+
+# ============================================================
+# PAGE: REPORTS
+# ============================================================
+elif selected_page == "📊 Reports":
+    st.markdown("### 📊 Shareable Report Card")
+    st.caption("Download or share your school's environmental report.")
+    
+    latest = df.iloc[-1]
+    grade, score, _ = calculate_grade(df)
+    walk_pct = (latest['walk'] + latest['bike']) / latest['total_students'] * 100
+    savings = calculate_cost_savings(df)
+    badges = get_badges(df)
+    
+    # Report content
+    report = f"""
+    🌱 ECO-SCHOOL REPORT CARD
+    📅 {datetime.now().strftime('%B %d, %Y')}
+    
+    Overall Grade: {grade} ({score:.0f}/100)
+    Walk/Bike Rate: {walk_pct:.0f}%
+    Trees Planted: {latest['trees_planted']}
+    Daily Savings: ${savings['total']:.0f}
+    Annual Savings: ${savings['annual']:.0f}
+    
+    Badges: {', '.join(badges)}
+    """
+    
+    st.markdown(f"""
+    <div style="background: {'rgba(255,255,255,0.05)' if st.session_state.dark_mode else '#f8faf8'}; 
+                border-radius: 16px; padding: 2rem; border: 1px solid rgba(46,139,87,0.2);">
+        <pre style="font-family: monospace; white-space: pre-wrap;">{report}</pre>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.download_button(
+            label="📥 Download Report (PDF)",
+            data=report,
+            file_name=f"eco_school_report_{datetime.now().strftime('%Y%m%d')}.txt",
+            mime="text/plain"
+        )
+    with col2:
+        twitter_text = f"🌱 Our school got a {grade}! Eco-School AI is helping us go green. #EcoSchool #Sustainability"
+        twitter_url = f"https://twitter.com/intent/tweet?text={twitter_text.replace(' ', '%20')}"
+        st.markdown(f'<a href="{twitter_url}" target="_blank"><button style="background:#1DA1F2; color:white; border:none; border-radius:30px; padding:0.6rem 1.8rem; font-weight:600; cursor:pointer; width:100%;">🐦 Share on Twitter</button></a>', unsafe_allow_html=True)
 
 # ============================================================
 # FOOTER
