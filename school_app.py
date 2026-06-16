@@ -10,7 +10,6 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import random
 from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import IsolationForest
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -25,6 +24,7 @@ DATA_FILE = "school_data.csv"
 
 # ===== GENERATE DEMO DATA =====
 def generate_demo_data():
+    """Generate realistic demo data with all required columns"""
     dates = pd.date_range(end=datetime.now(), periods=30)
     data = pd.DataFrame({
         'date': dates,
@@ -33,6 +33,7 @@ def generate_demo_data():
         'car_dropoffs': np.random.randint(40, 70, 30),
         'bus_riders': np.random.randint(170, 200, 30),
         'energy_kwh': np.random.randint(800, 1200, 30),
+        'lights_left_on': np.random.randint(2, 8, 30),
         'food_waste_lbs': np.random.randint(15, 35, 30),
         'recycling_lbs': np.random.randint(15, 35, 30),
         'paper_reams': np.random.randint(5, 15, 30),
@@ -46,24 +47,45 @@ def load_data():
     try:
         df = pd.read_csv(DATA_FILE)
         df['date'] = pd.to_datetime(df['date'])
+        
+        # Ensure all required columns exist
+        required_cols = ['walkers', 'bikers', 'car_dropoffs', 'bus_riders', 
+                        'energy_kwh', 'lights_left_on', 'food_waste_lbs', 
+                        'recycling_lbs', 'paper_reams', 'trees_planted', 'total_students']
+        
+        # If any column is missing, regenerate data
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        if missing_cols:
+            st.warning(f"Missing columns: {missing_cols}. Regenerating data...")
+            df = generate_demo_data()
         return df
     except:
         return generate_demo_data()
 
 df = load_data()
 
-# ===== AI FUNCTIONS =====
+# ===== CALCULATE METRICS =====
+def calculate_metrics(df):
+    latest = df.iloc[-1]
+    walk_bike_pct = ((latest['walkers'] + latest['bikers']) / latest['total_students']) * 100 if latest['total_students'] > 0 else 0
+    
+    total_waste = latest['food_waste_lbs'] + latest['recycling_lbs']
+    diversion_pct = (latest['recycling_lbs'] / total_waste * 100) if total_waste > 0 else 0
+    
+    energy_score = max(0, 100 - (latest['lights_left_on'] * 10))
+    
+    overall = (walk_bike_pct * 0.3 + diversion_pct * 0.25 + energy_score * 0.25 + (latest['trees_planted'] * 2))
+    return walk_bike_pct, diversion_pct, energy_score, overall
 
+# ===== AI FUNCTIONS =====
 def detect_anomalies(df):
     """AI detects unusual patterns without human intervention"""
     anomalies = []
+    latest = df.iloc[-1]
     
-    # 1. Energy anomaly (lights left on)
-    energy_mean = df['energy_kwh'].mean()
-    energy_std = df['energy_kwh'].std()
-    last_energy = df['energy_kwh'].iloc[-1]
-    if last_energy > energy_mean + energy_std:
-        anomalies.append(f"💡 **High energy usage detected:** {last_energy:.0f} kWh today (avg: {energy_mean:.0f} kWh). Lights may be left on.")
+    # 1. Lights left on (energy waste)
+    if latest['lights_left_on'] > 5:
+        anomalies.append(f"💡 **Lights left on:** {latest['lights_left_on']} classrooms. This wastes ${latest['lights_left_on'] * 10:.0f}/month.")
     
     # 2. Food waste anomaly
     waste_mean = df['food_waste_lbs'].mean()
@@ -88,12 +110,14 @@ def detect_anomalies(df):
     
     return anomalies
 
-def predict_future(df, days=14):
+def predict_trends(df, days=14):
     """AI predicts future trends"""
     df_sorted = df.sort_values('date')
     predictions = {}
     
-    for metric in ['walkers', 'energy_kwh', 'food_waste_lbs']:
+    metrics = ['walkers', 'food_waste_lbs', 'recycling_lbs']
+    
+    for metric in metrics:
         days_num = np.array(range(len(df_sorted))).reshape(-1, 1)
         model = LinearRegression()
         model.fit(days_num, df_sorted[metric].values)
@@ -101,6 +125,7 @@ def predict_future(df, days=14):
         predictions[metric] = {
             'current': df_sorted[metric].iloc[-1],
             'future': future,
+            'future_last': future[-1],
             'trend': 'up' if future[-1] > df_sorted[metric].iloc[-1] else 'down'
         }
     return predictions
@@ -114,9 +139,8 @@ def generate_recommendations(df):
     if walk_pct < 40:
         recs.append(f"🚶 **Walk more:** Only {walk_pct:.0f}% walk/bike. Increase to 50%.")
     
-    energy_avg = df['energy_kwh'].mean()
-    if latest['energy_kwh'] > energy_avg:
-        recs.append(f"💡 **Save energy:** Energy usage {latest['energy_kwh']:.0f} kWh vs {energy_avg:.0f} kWh avg. Turn off lights.")
+    if latest['lights_left_on'] > 3:
+        recs.append(f"💡 **Save energy:** {latest['lights_left_on']} classrooms leave lights on. Assign energy monitors.")
     
     waste_avg = df['food_waste_lbs'].mean()
     if latest['food_waste_lbs'] > waste_avg:
@@ -128,8 +152,9 @@ def calculate_grade(df):
     """AI calculates overall grade"""
     latest = df.iloc[-1]
     walk_pct = (latest['walkers'] + latest['bikers']) / latest['total_students'] * 100
-    waste_pct = latest['recycling_lbs'] / (latest['food_waste_lbs'] + latest['recycling_lbs']) * 100
-    energy_score = max(0, 100 - (latest['energy_kwh'] / 10))
+    total_waste = latest['food_waste_lbs'] + latest['recycling_lbs']
+    waste_pct = (latest['recycling_lbs'] / total_waste * 100) if total_waste > 0 else 0
+    energy_score = max(0, 100 - (latest['lights_left_on'] * 10))
     overall = (walk_pct * 0.3 + waste_pct * 0.2 + energy_score * 0.3 + min(100, latest['trees_planted'] * 2))
     
     if overall > 80: return 'A', overall, '#2e8b57'
@@ -153,7 +178,7 @@ if st.session_state.dark_mode:
 col1, col2 = st.columns([4, 1])
 with col1:
     st.markdown("# 🏫 Eco-School AI")
-    st.caption("AI-powered environmental intelligence — zero manual data collection")
+    st.caption("AI-powered environmental intelligence — minimal effort required")
 with col2:
     new_mode = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode)
     if new_mode != st.session_state.dark_mode:
@@ -176,21 +201,24 @@ if selected_page == "📊 Dashboard":
     latest = df.iloc[-1]
     grade, score, grade_color = calculate_grade(df)
     anomalies = detect_anomalies(df)
-    predictions = predict_future(df)
+    predictions = predict_trends(df)
+    walk_pct = (latest['walkers'] + latest['bikers']) / latest['total_students'] * 100
+    total_waste = latest['food_waste_lbs'] + latest['recycling_lbs']
+    waste_pct = (latest['recycling_lbs'] / total_waste * 100) if total_waste > 0 else 0
+    energy_score = max(0, 100 - (latest['lights_left_on'] * 10))
     
     # ===== METRICS =====
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown(f"""
-        <div class="metric-card" style="border-left: 4px solid #2e8b57;">
-            <div style="font-size: 2rem; font-weight: 800; color: #2e8b57;">{grade}</div>
+        <div class="metric-card" style="border-left: 4px solid {grade_color};">
+            <div style="font-size: 2rem; font-weight: 800; color: {grade_color};">{grade}</div>
             <div>📊 Overall Grade</div>
             <div style="font-size: 0.7rem;">Score: {score:.0f}/100</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
-        walk_pct = (latest['walkers'] + latest['bikers']) / latest['total_students'] * 100
         st.markdown(f"""
         <div class="metric-card" style="border-left: 4px solid #3b82f6;">
             <div style="font-size: 2rem; font-weight: 800; color: #3b82f6;">{walk_pct:.0f}%</div>
@@ -200,18 +228,15 @@ if selected_page == "📊 Dashboard":
         """, unsafe_allow_html=True)
     
     with col3:
-        energy_avg = df['energy_kwh'].mean()
-        energy_diff = ((latest['energy_kwh'] - energy_avg) / energy_avg * 100)
         st.markdown(f"""
-        <div class="metric-card" style="border-left: 4px solid {'#ef4444' if energy_diff > 10 else '#2e8b57'};">
-            <div style="font-size: 2rem; font-weight: 800; color: {'#ef4444' if energy_diff > 10 else '#2e8b57'};">{energy_diff:.0f}%</div>
-            <div>💡 Energy vs Avg</div>
-            <div style="font-size: 0.7rem;">{'🔴 High' if energy_diff > 10 else '✅ Normal'}</div>
+        <div class="metric-card" style="border-left: 4px solid {'#ef4444' if latest['lights_left_on'] > 4 else '#2e8b57'};">
+            <div style="font-size: 2rem; font-weight: 800; color: {'#ef4444' if latest['lights_left_on'] > 4 else '#2e8b57'};">{latest['lights_left_on']}</div>
+            <div>💡 Lights Left On</div>
+            <div style="font-size: 0.7rem;">{'🔴 Too many' if latest['lights_left_on'] > 4 else '✅ Good'}</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col4:
-        waste_pct = latest['recycling_lbs'] / (latest['food_waste_lbs'] + latest['recycling_lbs']) * 100
         st.markdown(f"""
         <div class="metric-card" style="border-left: 4px solid #8b5cf6;">
             <div style="font-size: 2rem; font-weight: 800; color: #8b5cf6;">{waste_pct:.0f}%</div>
@@ -237,16 +262,16 @@ if selected_page == "📊 Dashboard":
     col1, col2, col3 = st.columns(3)
     with col1:
         walk_pred = predictions['walkers']
-        st.metric("🚶 Walkers", f"{walk_pred['current']:.0f} → {walk_pred['future'][-1]:.0f}",
-                  delta=f"{walk_pred['future'][-1] - walk_pred['current']:.0f}")
+        st.metric("🚶 Walkers", f"{walk_pred['current']:.0f} → {walk_pred['future_last']:.0f}",
+                  delta=f"{walk_pred['future_last'] - walk_pred['current']:.0f}")
     with col2:
-        energy_pred = predictions['energy_kwh']
-        st.metric("💡 Energy (kWh)", f"{energy_pred['current']:.0f} → {energy_pred['future'][-1]:.0f}",
-                  delta=f"{energy_pred['future'][-1] - energy_pred['current']:.0f}")
-    with col3:
         waste_pred = predictions['food_waste_lbs']
-        st.metric("🍎 Food Waste (lbs)", f"{waste_pred['current']:.0f} → {waste_pred['future'][-1]:.0f}",
-                  delta=f"{waste_pred['future'][-1] - waste_pred['current']:.0f}")
+        st.metric("🍎 Food Waste (lbs)", f"{waste_pred['current']:.0f} → {waste_pred['future_last']:.0f}",
+                  delta=f"{waste_pred['future_last'] - waste_pred['current']:.0f}")
+    with col3:
+        recycle_pred = predictions['recycling_lbs']
+        st.metric("♻️ Recycling (lbs)", f"{recycle_pred['current']:.0f} → {recycle_pred['future_last']:.0f}",
+                  delta=f"{recycle_pred['future_last'] - recycle_pred['current']:.0f}")
     
     # ===== GUILT TRIGGER =====
     st.markdown("---")
@@ -268,10 +293,9 @@ elif selected_page == "📤 Upload Data":
     
     st.markdown("""
     ### 📋 Required CSV Format
-    | date | walkers | bikers | car_dropoffs | bus_riders | energy_kwh | food_waste_lbs | recycling_lbs | paper_reams | trees_planted | total_students |
-    |------|---------|--------|--------------|------------|------------|----------------|---------------|-------------|---------------|----------------|
-    | 2026-06-01 | 145 | 47 | 50 | 188 | 950 | 22 | 28 | 8 | 2 | 450 |
-    | 2026-06-02 | 150 | 48 | 48 | 190 | 920 | 20 | 30 | 7 | 2 | 450 |
+    | date | walkers | bikers | car_dropoffs | bus_riders | lights_left_on | food_waste_lbs | recycling_lbs | paper_reams | trees_planted | total_students |
+    |------|---------|--------|--------------|------------|----------------|----------------|---------------|-------------|---------------|----------------|
+    | 2026-06-01 | 145 | 47 | 50 | 188 | 4 | 22 | 28 | 8 | 2 | 450 |
     """)
     
     uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
@@ -283,14 +307,18 @@ elif selected_page == "📤 Upload Data":
             df_new.to_csv(DATA_FILE, index=False)
             st.success("✅ Data uploaded successfully! AI is now analyzing your data.")
             st.dataframe(df_new.head())
+            st.rerun()
         except Exception as e:
             st.error(f"Error: {e}. Please check the format.")
     
-    # Demo data button (zero effort)
     if st.button("🔄 Use Demo Data (No effort needed)"):
-        df = generate_demo_data()
+        generate_demo_data()
         st.success("✅ Demo data loaded! Your dashboard is ready.")
         st.rerun()
+    
+    # Show current data count
+    st.markdown("---")
+    st.markdown(f"📊 **Current data:** {len(df)} days of data logged")
 
 # ============================================================
 # PAGE 3: AI PREDICTIONS
@@ -300,7 +328,7 @@ elif selected_page == "🤖 AI Predictions":
     st.caption("AI analyzes historical data and predicts future trends.")
     
     df_sorted = df.sort_values('date')
-    predictions = predict_future(df)
+    predictions = predict_trends(df)
     
     col1, col2 = st.columns(2)
     
@@ -314,20 +342,20 @@ elif selected_page == "🤖 AI Predictions":
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        st.markdown("#### 💡 Energy Usage Trend")
+        st.markdown("#### 🍎 Food Waste Trend")
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df_sorted['date'], y=df_sorted['energy_kwh'], mode='lines+markers', name='Actual', line=dict(color='#f59e0b')))
-        fig.add_trace(go.Scatter(x=future_dates, y=predictions['energy_kwh']['future'], mode='lines', name='AI Predicted', line=dict(color='#ef4444', dash='dash')))
+        fig.add_trace(go.Scatter(x=df_sorted['date'], y=df_sorted['food_waste_lbs'], mode='lines+markers', name='Actual', line=dict(color='#8b5cf6')))
+        fig.add_trace(go.Scatter(x=future_dates, y=predictions['food_waste_lbs']['future'], mode='lines', name='AI Predicted', line=dict(color='#ec4899', dash='dash')))
         fig.update_layout(hovermode='x unified', height=350)
         st.plotly_chart(fig, use_container_width=True)
     
     col3, col4 = st.columns(2)
     
     with col3:
-        st.markdown("#### 🍎 Food Waste Trend")
+        st.markdown("#### ♻️ Recycling Trend")
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df_sorted['date'], y=df_sorted['food_waste_lbs'], mode='lines+markers', name='Actual', line=dict(color='#8b5cf6')))
-        fig.add_trace(go.Scatter(x=future_dates, y=predictions['food_waste_lbs']['future'], mode='lines', name='AI Predicted', line=dict(color='#ec4899', dash='dash')))
+        fig.add_trace(go.Scatter(x=df_sorted['date'], y=df_sorted['recycling_lbs'], mode='lines+markers', name='Actual', line=dict(color='#f59e0b')))
+        fig.add_trace(go.Scatter(x=future_dates, y=predictions['recycling_lbs']['future'], mode='lines', name='AI Predicted', line=dict(color='#ef4444', dash='dash')))
         fig.update_layout(hovermode='x unified', height=350)
         st.plotly_chart(fig, use_container_width=True)
     
@@ -336,10 +364,10 @@ elif selected_page == "🤖 AI Predictions":
         st.info("💡 **AI Insight:** " + 
                 ("Walking is trending UP. Keep encouraging students!" if predictions['walkers']['trend'] == 'up' else "Walking is trending DOWN. Time for a campaign!"))
         
-        if predictions['energy_kwh']['trend'] == 'down':
-            st.success("🎉 Energy usage is decreasing! Great job!")
+        if predictions['food_waste_lbs']['trend'] == 'down':
+            st.success("🎉 Food waste is decreasing! Great job!")
         else:
-            st.warning("⚠️ Energy usage is increasing. Check for lights left on.")
+            st.warning("⚠️ Food waste is increasing. Check cafeteria operations.")
 
 # ============================================================
 # PAGE 4: ACTION PLAN
@@ -350,16 +378,15 @@ elif selected_page == "📋 Action Plan":
     
     latest = df.iloc[-1]
     walk_pct = (latest['walkers'] + latest['bikers']) / latest['total_students'] * 100
-    energy_avg = df['energy_kwh'].mean()
     waste_avg = df['food_waste_lbs'].mean()
     
     st.markdown("### 🔴 PRIORITY 1: Energy Efficiency")
-    if latest['energy_kwh'] > energy_avg:
-        st.markdown(f"**Problem:** Energy usage is {latest['energy_kwh']:.0f} kWh vs {energy_avg:.0f} kWh avg.")
-        st.markdown("**Impact:** Save $200/month by reducing usage.")
-        st.markdown("**AI Suggestion:** Install smart plugs or assign energy monitors.")
+    if latest['lights_left_on'] > 3:
+        st.markdown(f"**Problem:** {latest['lights_left_on']} classrooms leave lights on daily.")
+        st.markdown(f"**Impact:** Save ${latest['lights_left_on'] * 10:.0f}/month by turning off lights.")
+        st.markdown("**AI Suggestion:** Assign an 'Energy Monitor' in each classroom.")
     else:
-        st.success("✅ Energy usage is below average. Keep it up!")
+        st.success("✅ Lights are being turned off. Keep it up!")
     
     st.markdown("### 🟠 PRIORITY 2: Transportation")
     if walk_pct < 40:
@@ -377,15 +404,25 @@ elif selected_page == "📋 Action Plan":
     else:
         st.success("✅ Food waste is below average. Great work!")
     
+    st.markdown("### 🟢 PRIORITY 4: Recycling")
+    total_waste = latest['food_waste_lbs'] + latest['recycling_lbs']
+    waste_pct = (latest['recycling_lbs'] / total_waste * 100) if total_waste > 0 else 0
+    if waste_pct < 60:
+        st.markdown(f"**Problem:** {waste_pct:.0f}% waste diverted. Goal: 70%.")
+        st.markdown("**Impact:** Save 1 tree per 500 lbs recycled.")
+        st.markdown("**AI Suggestion:** Add more recycling bins in hallways.")
+    else:
+        st.success("✅ Recycling rate is good. Aim for 70%!")
+    
     st.markdown("---")
     st.markdown("### 📊 Estimated Total Impact")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("🌡️ Temperature Reduction", "2-3°F")
+        st.metric("🌡️ Temperature Reduction", "2-3°F", "with 20 trees")
     with col2:
-        st.metric("💰 Cost Savings", "$500/year")
+        st.metric("💰 Cost Savings", "$500/year", "from energy & waste")
     with col3:
-        st.metric("🌿 CO2 Reduced", "2,000 lbs/year")
+        st.metric("🌿 CO2 Reduced", "2,000 lbs/year", "with all actions")
 
 # ===== FOOTER =====
 st.markdown("---")
