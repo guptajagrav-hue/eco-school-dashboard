@@ -20,7 +20,7 @@ st.set_page_config(
     page_title="Eco-School AI",
     page_icon="🌱",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # ============================================================
@@ -71,17 +71,12 @@ def load_data():
     try:
         df = pd.read_csv(DATA_FILE)
         df['date'] = pd.to_datetime(df['date'])
-        
-        # Check for required columns
         required = ['walk', 'bike', 'car', 'bus', 'lights_left_on', 
                     'food_waste_lbs', 'recycling_lbs', 'paper_reams', 
                     'trees_planted', 'total_students']
         missing = [col for col in required if col not in df.columns]
-        
         if missing:
-            # If columns are missing, regenerate data
             df = generate_demo_data()
-        
         return df
     except:
         return generate_demo_data()
@@ -160,7 +155,7 @@ def get_badges(df):
     return badges if badges else ["🌱 Eco-Rookie"]
 
 # ============================================================
-# UI: CSS
+# CSS — WITH SIDEBAR TOGGLE FIX
 # ============================================================
 def get_css(dark_mode):
     bg = "#0a0a12" if dark_mode else "#f8fafc"
@@ -173,6 +168,19 @@ def get_css(dark_mode):
     .stApp {{ background: {bg}; }}
     .stApp header {{ background: {bg}; backdrop-filter: blur(10px); }}
     h1, h2, h3, h4, .stMarkdown, .stText, label, .stMetric label {{ color: {text} !important; }}
+    
+    /* FIX: Sidebar toggle visible in light mode */
+    [data-testid="stSidebarCollapsedControl"] {{
+        color: {text} !important;
+        background: {card_bg} !important;
+        border-radius: 50% !important;
+        padding: 4px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+        border: 1px solid {border} !important;
+    }}
+    [data-testid="stSidebarCollapsedControl"] svg {{
+        fill: {text} !important;
+    }}
     
     .metric-card {{
         background: {card_bg};
@@ -244,6 +252,14 @@ def get_css(dark_mode):
     }}
     [data-testid="stSidebar"] * {{ color: {text} !important; }}
     
+    /* School name input */
+    .stTextInput > div > div > input {{
+        background: {card_bg} !important;
+        color: {text} !important;
+        border: 1px solid {border} !important;
+        border-radius: 8px !important;
+    }}
+    
     @media (max-width: 640px) {{
         .metric-card {{ padding: 1rem; }}
         .metric-card .value {{ font-size: 1.8rem; }}
@@ -260,6 +276,8 @@ if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
 if 'alerts' not in st.session_state:
     st.session_state.alerts = []
+if 'school_name' not in st.session_state:
+    st.session_state.school_name = "Your School"
 
 st.markdown(get_css(st.session_state.dark_mode), unsafe_allow_html=True)
 
@@ -288,6 +306,24 @@ with st.sidebar:
     selected_page = st.radio("", pages, label_visibility="collapsed")
     
     st.markdown("---")
+    
+    # ===== SCHOOL NAME INPUT =====
+    st.markdown("### 🏫 Your School")
+    school_name_input = st.text_input("School Name:", value=st.session_state.school_name)
+    if school_name_input != st.session_state.school_name:
+        st.session_state.school_name = school_name_input
+        # Update schools dict
+        if school_name_input not in schools:
+            schools[school_name_input] = {"walk_pct": 0, "grade": "?", "points": 0, "trees": 0}
+        if "Your School" in schools and school_name_input != "Your School":
+            # Move data from "Your School" to new name
+            schools[school_name_input] = schools["Your School"]
+            del schools["Your School"]
+        save_schools(schools)
+        st.rerun()
+    
+    st.markdown("---")
+    
     new_mode = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode)
     if new_mode != st.session_state.dark_mode:
         st.session_state.dark_mode = new_mode
@@ -310,10 +346,13 @@ if selected_page == "📊 Dashboard":
     savings = calculate_cost_savings(df)
     
     # Update school data
-    schools["Your School"]["walk_pct"] = walk_pct
-    schools["Your School"]["grade"] = grade
-    schools["Your School"]["points"] = int(score)
-    schools["Your School"]["trees"] = int(latest['trees_planted'])
+    school_key = st.session_state.school_name
+    if school_key not in schools:
+        schools[school_key] = {"walk_pct": 0, "grade": "?", "points": 0, "trees": 0}
+    schools[school_key]["walk_pct"] = walk_pct
+    schools[school_key]["grade"] = grade
+    schools[school_key]["points"] = int(score)
+    schools[school_key]["trees"] = int(latest['trees_planted'])
     save_schools(schools)
     
     # Alerts
@@ -323,7 +362,6 @@ if selected_page == "📊 Dashboard":
         if latest['food_waste_lbs'] > 30:
             st.session_state.alerts.append("🍎 Waste Alert: Food waste is over 30 lbs!")
     
-    # Display alerts
     for alert in st.session_state.alerts:
         st.markdown(f'<div class="alert-box">🚨 {alert}</div>', unsafe_allow_html=True)
     
@@ -398,7 +436,6 @@ if selected_page == "📊 Dashboard":
         </div>
         """, unsafe_allow_html=True)
     
-    # Anomalies
     if anomalies:
         st.markdown("---")
         st.markdown("### ⚠️ AI-Detected Issues")
@@ -628,6 +665,7 @@ elif selected_page == "📊 Reports":
     report = f"""
 🌱 ECO-SCHOOL REPORT CARD
 📅 {datetime.now().strftime('%B %d, %Y')}
+🏫 {st.session_state.school_name}
 
 Overall Grade: {grade} ({score:.0f}/100)
 Walk/Bike Rate: {walk_pct:.0f}%
