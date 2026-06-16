@@ -155,7 +155,7 @@ def get_badges(df):
     return badges if badges else ["🌱 Eco-Rookie"]
 
 # ============================================================
-# CSS — WITH SIDEBAR TOGGLE FIX
+# CSS — WITH VISIBLE SIDEBAR BUTTON
 # ============================================================
 def get_css(dark_mode):
     bg = "#0a0a12" if dark_mode else "#f8fafc"
@@ -169,17 +169,25 @@ def get_css(dark_mode):
     .stApp header {{ background: {bg}; backdrop-filter: blur(10px); }}
     h1, h2, h3, h4, .stMarkdown, .stText, label, .stMetric label {{ color: {text} !important; }}
     
-    /* FIX: Sidebar toggle visible in light mode */
+    /* Hide default sidebar toggle */
     [data-testid="stSidebarCollapsedControl"] {{
-        color: {text} !important;
-        background: {card_bg} !important;
-        border-radius: 50% !important;
-        padding: 4px !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-        border: 1px solid {border} !important;
+        display: none !important;
     }}
-    [data-testid="stSidebarCollapsedControl"] svg {{
-        fill: {text} !important;
+    
+    /* Sidebar toggle button */
+    .sidebar-toggle {{
+        background: {card_bg};
+        border: 1px solid {border};
+        border-radius: 30px;
+        padding: 0.4rem 1rem;
+        color: {text};
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }}
+    .sidebar-toggle:hover {{
+        background: rgba(46,139,87,0.1);
+        border-color: #2e8b57;
     }}
     
     .metric-card {{
@@ -252,7 +260,6 @@ def get_css(dark_mode):
     }}
     [data-testid="stSidebar"] * {{ color: {text} !important; }}
     
-    /* School name input */
     .stTextInput > div > div > input {{
         background: {card_bg} !important;
         color: {text} !important;
@@ -278,8 +285,19 @@ if 'alerts' not in st.session_state:
     st.session_state.alerts = []
 if 'school_name' not in st.session_state:
     st.session_state.school_name = "Your School"
+if 'sidebar_open' not in st.session_state:
+    st.session_state.sidebar_open = True
 
 st.markdown(get_css(st.session_state.dark_mode), unsafe_allow_html=True)
+
+# ============================================================
+# SIDEBAR TOGGLE BUTTON
+# ============================================================
+col1, col2, col3 = st.columns([1, 6, 1])
+with col1:
+    if st.button("☰ Menu", key="sidebar_toggle"):
+        st.session_state.sidebar_open = not st.session_state.sidebar_open
+        st.rerun()
 
 # ============================================================
 # HEADER
@@ -312,11 +330,9 @@ with st.sidebar:
     school_name_input = st.text_input("School Name:", value=st.session_state.school_name)
     if school_name_input != st.session_state.school_name:
         st.session_state.school_name = school_name_input
-        # Update schools dict
         if school_name_input not in schools:
             schools[school_name_input] = {"walk_pct": 0, "grade": "?", "points": 0, "trees": 0}
         if "Your School" in schools and school_name_input != "Your School":
-            # Move data from "Your School" to new name
             schools[school_name_input] = schools["Your School"]
             del schools["Your School"]
         save_schools(schools)
@@ -345,7 +361,6 @@ if selected_page == "📊 Dashboard":
     badges = get_badges(df)
     savings = calculate_cost_savings(df)
     
-    # Update school data
     school_key = st.session_state.school_name
     if school_key not in schools:
         schools[school_key] = {"walk_pct": 0, "grade": "?", "points": 0, "trees": 0}
@@ -355,7 +370,6 @@ if selected_page == "📊 Dashboard":
     schools[school_key]["trees"] = int(latest['trees_planted'])
     save_schools(schools)
     
-    # Alerts
     if len(st.session_state.alerts) == 0:
         if latest['lights_left_on'] > 5:
             st.session_state.alerts.append("💡 Energy Alert: Lights left on in 5+ classrooms!")
@@ -365,7 +379,6 @@ if selected_page == "📊 Dashboard":
     for alert in st.session_state.alerts:
         st.markdown(f'<div class="alert-box">🚨 {alert}</div>', unsafe_allow_html=True)
     
-    # Metrics Row
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown(f"""
@@ -401,13 +414,11 @@ if selected_page == "📊 Dashboard":
         </div>
         """, unsafe_allow_html=True)
     
-    # Badges
     st.markdown("---")
     st.markdown("### 🏅 Badges")
     badge_html = "".join([f'<span class="badge-card">{b}</span>' for b in badges])
     st.markdown(f'<div>{badge_html}</div>', unsafe_allow_html=True)
     
-    # Feature Cards
     st.markdown("---")
     st.markdown("### 🌿 Your School's Environmental Profile")
     col1, col2, col3 = st.columns(3)
