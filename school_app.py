@@ -273,7 +273,7 @@ def get_css(dark_mode):
 # STATE
 # ============================================================
 if 'dark_mode' not in st.session_state:
-    st.session_state.dark_mode = False
+    st.session_state.dark_mode = True
 if 'alerts' not in st.session_state:
     st.session_state.alerts = []
 if 'school_name' not in st.session_state:
